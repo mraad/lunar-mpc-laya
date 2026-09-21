@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 mlx = ["lunar-laya[mlx]"]
+media = ["Pillow>=12,<13"]
 
 [project.scripts]
 lunar-mpc-laya = "lunar_mpc_laya.cli:main"

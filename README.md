@@ -34,6 +34,12 @@ slowly, inside a pad.
    0 of 90 (small mistakes compound). With MPC checking it, 90 of 90, while
    about two thirds of the executed commands are Laya's own.
 
+![Distilled Laya with the MPC shield landing through a 60% engine loss](docs/assets/distilled-shield.gif)
+
+*An actual recorded flight: distilled Laya deciding from telemetry, adaptive
+MPC shielding it, engine thrust cut to 40% at 10 s. The shield replaced 109 of
+348 proposals. See [docs/media.md](docs/media.md).*
+
 **Try it.** A browser page runs the MPC live (click anywhere in the sky, pick
 a pad, add a fault, launch). With the local server it also flies the real Laya
 checkpoints and replays every recorded decision with the model's probabilities.
@@ -44,6 +50,7 @@ checkpoints and replays every recorded decision with the model's probabilities.
 | [Measured results](docs/results.md) | Landings, request following, shield activity and latency for every pilot and fault scenario, with reproduction commands |
 | [Distillation](docs/distillation.md) | Retraining Laya on MPC labels with a telemetry-only prompt: raw 0/90, shielded 90/90 with Laya's choice kept two thirds of the time |
 | [Landing lab](web/README.md) | The browser page: live MPC, live Laya pilots through the local server, recorded flights |
+| [Animated flight](docs/media.md) | The GIF above: what it shows and how to regenerate it |
 
 ## Landing lab in the browser
 
@@ -99,6 +106,7 @@ lunar_mpc_laya/pilot.py   MPCPilot: upstream Pilot with MPC reference and predic
 lunar_mpc_laya/cli.py     Session (episode loop with fault injection), upstream JSON schema and replay
 lunar_mpc_laya/distilled.py  telemetry-only prompt and the distilled pilot (Laya decides, MPC shields)
 lunar_mpc_laya/serve.py   local server: page + live /reset and /step decisions from the Python pilots
+lunar_mpc_laya/gif.py     documentation GIF renderer (Pillow, media extra)
 scripts/evaluate.py       records every pilot/scenario on seeds 3000-3009 and writes docs/results.json
 scripts/parity.py         records Python flights that the JavaScript port must reproduce
 training/                 telemetry-only prompt, MPC-labelled data, CUDA trainer, distilled pilot, MLX verification
