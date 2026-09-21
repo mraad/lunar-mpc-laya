@@ -50,10 +50,12 @@ function draw(view, s, trail, prediction, target, command, placing) {
   ctx.strokeStyle = "#244c46"; ctx.setLineDash([3, 7]); ctx.beginPath(); ctx.moveTo(x, y + 24); ctx.lineTo(x, py(pad[2])); ctx.stroke(); ctx.setLineDash([]);
   ctx.save(); ctx.translate(x, y); ctx.rotate(s.angle * Math.PI / 180);
   ctx.strokeStyle = s.status === "crashed" || s.status === "out_of_bounds" ? "#e7ac83" : "#d9fff0";
-  ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(7, -4); ctx.lineTo(6, 4); ctx.lineTo(-6, 4); ctx.lineTo(-7, -4); ctx.closePath();
-  ctx.moveTo(-5, 4); ctx.lineTo(-6, 8); ctx.lineTo(-8, 8); ctx.moveTo(5, 4); ctx.lineTo(6, 8); ctx.lineTo(8, 8); ctx.stroke();
+  // Feet end exactly RADIUS below the hull centre in canvas units, so they touch the surface at touchdown and never sink.
+  const foot = L.RADIUS * (H - 58 * k) / 750, u = foot / 8;
+  ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(0, -10 * u); ctx.lineTo(7 * u, -4 * u); ctx.lineTo(6 * u, 4 * u); ctx.lineTo(-6 * u, 4 * u); ctx.lineTo(-7 * u, -4 * u); ctx.closePath();
+  ctx.moveTo(-5 * u, 4 * u); ctx.lineTo(-6 * u, foot); ctx.lineTo(-8 * u, foot); ctx.moveTo(5 * u, 4 * u); ctx.lineTo(6 * u, foot); ctx.lineTo(8 * u, foot); ctx.stroke();
   if (s.status === "flying" && s.fuel > 0 && command && command.throttle > 0) {
-    ctx.strokeStyle = "#edbf7f"; ctx.beginPath(); ctx.moveTo(-3, 6); ctx.lineTo(0, 10 + 15 * command.throttle); ctx.lineTo(3, 6); ctx.stroke();
+    ctx.strokeStyle = "#edbf7f"; ctx.beginPath(); ctx.moveTo(-3, 6 * u); ctx.lineTo(0, 6 * u + 4 + 15 * command.throttle); ctx.lineTo(3, 6 * u); ctx.stroke();
   }
   ctx.restore();
   if (placing) { ctx.fillStyle = "#90edd0"; ctx.font = "11px monospace"; ctx.fillText("START · click the sky to move", x + 14, y + 4); }

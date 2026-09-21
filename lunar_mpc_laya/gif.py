@@ -82,10 +82,18 @@ def render(record, episode, index):
         return [(x + px * math.cos(angle) - py * math.sin(angle), y + px * math.sin(angle) + py * math.cos(angle)) for px, py in points]
 
     crashed = state["status"] in ("crashed", "out_of_bounds")
-    draw.polygon(ship([(0, -11), (8, -4), (7, 5), (-7, 5), (-8, -4)]), outline=RED if crashed else TEXT)
-    draw.line(ship([(-6, 5), (-8, 10)]), fill=TEXT); draw.line(ship([(6, 5), (8, 10)]), fill=TEXT)
+    # The game treats the hull as a circle of RADIUS around (x, y); it sits on the
+    # surface when y - RADIUS == ground. Feet are drawn exactly RADIUS below the
+    # centre in map units (vertical scale .43 px/m) so they touch, never sink.
+    foot = RADIUS * .43
+    hull = [(0, -foot * 1.1), (foot * .8, -foot * .3), (foot * .7, foot * .2), (-foot * .7, foot * .2), (-foot * .8, -foot * .3)]
+    scale = 3.2  # visual size; legs still end at exactly `foot` below centre
+    draw.polygon(ship([(px * scale, py * scale) for px, py in hull]), fill=PANEL, outline=RED if crashed else TEXT)
+    draw.line(ship([(-foot * .7 * scale, foot * .2 * scale), (-foot * 1.1 * scale, foot)]), fill=TEXT)
+    draw.line(ship([(foot * .7 * scale, foot * .2 * scale), (foot * 1.1 * scale, foot)]), fill=TEXT)
     if not terminal and d["executed"]["throttle"] > 0 and state["fuel"] > 0:
-        draw.polygon(ship([(-3, 6), (0, 12 + 14 * d["executed"]["throttle"]), (3, 6)]), fill=AMBER)
+        base = foot * .2 * scale
+        draw.polygon(ship([(-3, base), (0, base + 4 + 14 * d["executed"]["throttle"]), (3, base)]), fill=AMBER)
     status = state["status"].upper().replace("_", " ") if terminal else "FLYING"
     text(38, 516, f"{status}   T+ {state['time']:5.1f} s   tilt {state['angle']:+.0f}°", 12, RED if crashed else MINT)
 
