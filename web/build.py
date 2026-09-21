@@ -38,8 +38,10 @@ def pilot_name(record):
     return name
 
 
-def label(record):
-    fault = record.get("fault") or {}
+def label(record, episode=None):
+    fault = dict(record.get("fault") or {})
+    if episode and "thrust_scale" in episode:      # verify_mlx records mix scenarios in one file
+        fault["thrust_scale"] = episode["thrust_scale"]
     scale = fault.get("thrust_scale", 1)
     return f"{pilot_name(record)} · " + ("nominal" if scale == 1 else f"thrust ×{scale} at {fault.get('fault_at', 10):g} s")
 
@@ -53,11 +55,11 @@ def build(recordings, out):
     runs = {}
     for path in map(Path, recordings):
         record = json.loads(path.read_text())
-        key = label(record)
-        run = runs.setdefault(key, {"id": len(runs), "label": key, "file": f"runs/{len(runs)}.json",
-                                    "pilot": pilot_name(record),
-                                    "episodes": []})
-        run["episodes"].extend(slim(record)["episodes"])
+        for raw, episode in zip(record["episodes"], slim(record)["episodes"]):
+            key = label(record, raw)
+            run = runs.setdefault(key, {"id": len(runs), "label": key, "file": f"runs/{len(runs)}.json",
+                                        "pilot": pilot_name(record), "episodes": []})
+            run["episodes"].append(episode)
     manifest = []
     for run in runs.values():
         (out / run["file"]).write_text(json.dumps({"label": run["label"], "pilot": run["pilot"],

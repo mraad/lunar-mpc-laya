@@ -17,26 +17,33 @@ from lunar_laya.game import PADS, Game, State
 from lunar_laya.pilot import Pilot
 
 from .cli import Session
+from .distilled import DistilledPilot
 from .mpc import AdaptiveMPC, MPCConfig
-from .pilot import MPCPilot, UPSTREAM
+from .pilot import MPCPilot
 
 FIELDS = ("x", "y", "vx", "vy", "angle")
 
 
 class Live:
-    """One flight at a time; the Laya agent is loaded once and shared across resets."""
+    """One flight at a time; each Laya agent is loaded once and shared across resets.
 
-    def __init__(self, agent=None, provenance=None):
+    ``agent`` answers the request-following prompt (modes mpc-laya, mpc-assisted);
+    ``distilled`` answers the telemetry-only prompt (modes distilled-laya, distilled-assisted).
+    """
+
+    def __init__(self, agent=None, provenance=None, distilled=None, distilled_provenance=None):
         self.agent, self.provenance, self.session = agent, provenance or {}, None
+        self.distilled, self.distilled_provenance = distilled, distilled_provenance or {}
 
     def status(self):
-        modes = ["mpc"] + (["mpc-laya", "mpc-assisted"] if self.agent else [])
-        return {"live": True, "modes": modes, "model": self.provenance}
+        modes = ["mpc"] + (["mpc-laya", "mpc-assisted"] if self.agent else []) \
+            + (["distilled-laya", "distilled-assisted"] if self.distilled else [])
+        return {"live": True, "modes": modes, "model": self.provenance, "distilled": self.distilled_provenance}
 
     def reset(self, request):
         mode = request.get("mode", "mpc")
-        if mode not in UPSTREAM or (mode != "mpc" and self.agent is None):
-            raise ValueError(f"pilot {mode!r} unavailable; start the server with a model")
+        if mode not in self.status()["modes"]:
+            raise ValueError(f"pilot {mode!r} unavailable; start the server with its model")
         start = request.get("start", {})
         values = [float(start.get(k, math.nan)) for k in FIELDS]
         if not all(math.isfinite(v) for v in values) or not 0 <= values[1] <= 750:
@@ -45,7 +52,11 @@ class Live:
         if target not in range(len(PADS)):
             raise ValueError("target must be 0, 1 or 2")
         cfg = MPCConfig(adaptive=bool(request.get("adaptive", True)))
-        pilot = MPCPilot(mode, agent=self.agent, mpc=AdaptiveMPC(cfg), margin=float(request.get("margin", 0.)))
+        margin = float(request.get("margin", 0.))
+        if mode.startswith("distilled"):
+            pilot = DistilledPilot(mode, agent=self.distilled, mpc=AdaptiveMPC(cfg), margin=margin)
+        else:
+            pilot = MPCPilot(mode, agent=self.agent, mpc=AdaptiveMPC(cfg), margin=margin)
         game = Game(0, target)
         game.state = State(*values)
         self.session = Session(pilot, game, float(request.get("thrust_scale", 1.)), float(request.get("fault_at", 10.)))
@@ -100,6 +111,8 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", default="../lunar-laya/models/lunar-laya-supervised-mlx")
     parser.add_argument("--revision")
+    parser.add_argument("--distilled", default="models/lunar-mpc-laya-distilled-mlx",
+                        help="telemetry-only checkpoint; skipped when the directory is missing")
     parser.add_argument("--no-model", action="store_true", help="serve MPC-only live flights")
     parser.add_argument("--port", type=int, default=8767)
     parser.add_argument("--root", type=Path, help="static directory (default dist/web if built, else web)")
@@ -112,6 +125,12 @@ def main(argv=None):
             live = Live(loader.agent, loader.provenance)
         except (RuntimeError, OSError, ValueError) as exc:
             print(f"Laya unavailable ({exc}); serving MPC-only live flights", flush=True)
+        if Path(args.distilled).is_dir():
+            try:
+                loader = Pilot("laya", args.distilled)
+                live.distilled, live.distilled_provenance = loader.agent, loader.provenance
+            except (RuntimeError, OSError, ValueError) as exc:
+                print(f"Distilled checkpoint unavailable ({exc})", flush=True)
     server = HTTPServer(("127.0.0.1", args.port), partial(Handler, live=live, directory=str(root)))
     print(f"Serving {root} with live pilots {live.status()['modes']} at http://127.0.0.1:{args.port}/ (Ctrl+C stops)", flush=True)
     try:

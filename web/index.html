@@ -35,7 +35,7 @@
     <aside class="panel">
       <section class="card">
         <div class="section-title">PILOT</div>
-        <select id="pilot" aria-label="Pilot"><option value="mpc">Browser MPC (no model)</option><option value="mpc-laya" disabled>Live Laya · MPC requests, raw execution</option><option value="mpc-assisted" disabled>Live Laya · MPC requests + predictive shield</option></select>
+        <select id="pilot" aria-label="Pilot"><option value="mpc">Browser MPC (no model)</option><option value="mpc-laya" disabled>Live Laya · MPC requests, raw execution</option><option value="mpc-assisted" disabled>Live Laya · MPC requests + predictive shield</option><option value="distilled-laya" disabled>Live distilled Laya · telemetry only, raw</option><option value="distilled-assisted" disabled>Live distilled Laya · telemetry only + shield</option></select>
         <p id="pilot-note" class="small">Live Laya needs <code>uv run lunar-mpc-laya-serve</code>.</p>
       </section>
       <section class="card">
@@ -78,6 +78,7 @@
     <h2>What runs here</h2>
     <p><b>Browser MPC is a live simulation, not a recording.</b> The physics and the adaptive MPC are a line-for-line port of the Python package (same constants, substeps, landing rules, cost weights, beam width 32, horizon 15 stages). A Node check replays Python-recorded flights and matches every command. The dashed line is the current 3 s plan; the solid trail is the executed path.</p>
     <p><b>Live Laya runs in Python, not in the browser.</b> With the local server, each decision is a real Laya inference on Apple MLX: MPC computes the requested labels, Laya answers the two choice questions, and in shield mode MPC rolls out Laya's proposal and overrides only when it is predicted worse than its own plan. The browser only draws what the server returns.</p>
+    <p><b>Two checkpoints.</b> <i>Laya · MPC requests</i> is the original checkpoint: its prompt carries MPC's requested rotation and power, and it follows them. <i>Distilled Laya</i> was retrained on MPC labels with a telemetry-only prompt; it decides by itself, cannot land unshielded, and lands every recorded flight with the shield while keeping about two thirds of its own choices.</p>
     <p><b>Adaptive vs fixed.</b> The controller is told nothing about the fault. With learning on, the thrust estimate moves toward the true value within a few seconds and the plan changes with it. With learning off it keeps planning for the nominal engine; at ×0.4 that lands too fast. Landing needs |vx| ≤ 2 m/s, descent ≤ 3 m/s, |tilt| ≤ 8° inside the pad. Cost weights were hand-picked on ten development seeds; some starts are unrecoverable and the search has no guarantee.</p>
   </section>
   </section>

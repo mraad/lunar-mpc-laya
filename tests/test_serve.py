@@ -24,6 +24,8 @@ class Serve(unittest.TestCase):
         live = Live(agent=EchoAgent(), provenance={"model": "fake"})
         self.assertEqual(live.status()["modes"], ["mpc", "mpc-laya", "mpc-assisted"])
         with self.assertRaises(ValueError):
+            live.reset({"mode": "distilled-laya", "start": {"x": 500, "y": 450, "vx": 0, "vy": -8, "angle": 0}})
+        with self.assertRaises(ValueError):
             live.step({"n": 1})
         start = {"x": 500, "y": 450, "vx": 0, "vy": -8, "angle": 0}
         live.reset({"mode": "mpc-assisted", "start": start, "target": 1, "thrust_scale": .4, "adaptive": True})
@@ -42,6 +44,15 @@ class Serve(unittest.TestCase):
         for bad in ({"mode": "nope"}, {"start": {"x": "a"}}, {"target": 7}, {"thrust_scale": 0}):
             with self.assertRaises(ValueError):
                 live.reset({"start": start, **bad})
+
+    def test_distilled_modes_use_the_second_agent(self):
+        from tests.test_training import Fixed
+        live = Live(distilled=Fixed("hold", "off"), distilled_provenance={"model": "fake-distilled"})
+        self.assertEqual(live.status()["modes"], ["mpc", "distilled-laya", "distilled-assisted"])
+        live.reset({"mode": "distilled-assisted", "start": {"x": 500, "y": 60, "vx": 0, "vy": -6, "angle": 0}, "target": 1})
+        frames = live.step({"n": 5})["frames"]
+        self.assertNotIn("Requested", frames[0]["decision"]["prompt"])
+        self.assertTrue(any(f["decision"]["intervened"] for f in frames))
 
     def test_http_round_trip_without_model(self):
         server = HTTPServer(("127.0.0.1", 0), partial(Handler, live=Live(), directory="web"))

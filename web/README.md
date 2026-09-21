@@ -4,9 +4,11 @@ Two tabs, one page, no npm, no bundler, no external assets.
 
 - **Landing lab**: click the sky to place the lander, set speeds and tilt,
   choose a pad and an engine fault, launch. Pilot **Browser MPC** runs the
-  adaptive MPC in JavaScript. Pilots **Live Laya** send each decision to the
-  local Python server, where the real Laya checkpoint answers on Apple MLX and
+  adaptive MPC in JavaScript. The **Live** pilots send each decision to the
+  local Python server, where a real Laya checkpoint answers on Apple MLX and
   the MPC shield checks the answer; the browser only draws the returned frames.
+  *Live Laya* is the original checkpoint reading MPC's requests; *Live
+  distilled Laya* is the retrained one deciding from telemetry alone.
 - **Recorded Laya flights**: Python-recorded flights from `scripts/evaluate.py`
   (held-out seeds 3000–3009) with every decision's probabilities, MPC request,
   Laya proposal, executed command and shield activity.
@@ -21,8 +23,9 @@ uv run lunar-mpc-laya-serve --no-model                   # MPC-only live server
 python3 -m http.server 8767 --bind 127.0.0.1 --directory web
 ```
 
-The server binds 127.0.0.1, loads the model once (`--model`, default
-`../lunar-laya/models/lunar-laya-supervised-mlx`), serves `dist/web` when built
+The server binds 127.0.0.1, loads the models once (`--model`, default
+`../lunar-laya/models/lunar-laya-supervised-mlx`; `--distilled`, default
+`models/lunar-mpc-laya-distilled-mlx`, skipped when absent), serves `dist/web` when built
 and `web/` otherwise (`--root` overrides), and exposes three JSON endpoints:
 `GET /status` (available pilots, model provenance), `POST /reset` (start state,
 target, fault, adaptive, mode, margin) and `POST /step` (`n` decisions, returns
@@ -31,7 +34,8 @@ frames with the full decision record). One flight at a time; a reset replaces it
 ## Build the recorded tab
 
 ```bash
-python3 web/build.py dist/eval/pd-laya*.json dist/eval/mpc-laya*.json dist/eval/mpc-assisted*.json
+python3 web/build.py dist/eval/pd-laya*.json dist/eval/mpc-laya*.json dist/eval/mpc-assisted*.json \
+  dist/distilled-evaluation-*.json
 uv run lunar-mpc-laya-serve            # now serves dist/web
 ```
 

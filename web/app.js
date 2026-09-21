@@ -148,7 +148,7 @@ function renderLab() {
   const fault = lab.thrustScale < 1 && s.time >= FAULT_AT;
   $("status").textContent = s.status === "flying" ? (lab.trail.length ? (lab.playing ? "FLYING" : "PAUSED") : "READY · CLICK THE SKY TO PLACE THE LANDER") : s.status.toUpperCase().replace("_", " ");
   $("status").className = s.status === "crashed" || s.status === "out_of_bounds" ? "warning" : "";
-  $("badge").textContent = s.status !== "flying" ? `● \u00a0 ${s.status.toUpperCase().replace("_", " ")}` : fault ? `● \u00a0 FAULT ACTIVE · THRUST ×${lab.thrustScale}` : lab.pilot === "mpc" ? "● \u00a0 BROWSER MPC" : "● \u00a0 LIVE LAYA / MLX";
+  $("badge").textContent = s.status !== "flying" ? `● \u00a0 ${s.status.toUpperCase().replace("_", " ")}` : fault ? `● \u00a0 FAULT ACTIVE · THRUST ×${lab.thrustScale}` : lab.pilot === "mpc" ? "● \u00a0 BROWSER MPC" : lab.pilot.startsWith("distilled") ? "● \u00a0 LIVE DISTILLED LAYA / MLX" : "● \u00a0 LIVE LAYA / MLX";
   $("solve").textContent = lab.plan ? `PLAN ${lab.plan.solveMs.toFixed(1)} ms` : "PLAN —";
   $("command").textContent = word(lab.command);
   $("cost").textContent = lab.plan ? lab.plan.cost.toFixed(1) : "—";
@@ -282,7 +282,8 @@ window.addEventListener("keydown", event => { if (event.code === "Space" && even
 api("/status").then(status => {
   for (const option of $("pilot").options) option.disabled = !status.modes.includes(option.value);
   const model = status.model && status.model.model;
-  $("pilot-note").textContent = status.modes.length > 1 ? `Live server ready · model ${model || "loaded"}` : "Live server running without a model: browser MPC and server MPC only.";
+  const distilled = status.modes.includes("distilled-laya");
+  $("pilot-note").textContent = status.modes.length > 1 ? `Live server ready · ${model || "model loaded"}${distilled ? " · distilled checkpoint loaded" : ""}` : "Live server running without a model: browser MPC and server MPC only.";
 }).catch(() => { $("pilot-note").textContent = "Live Laya needs the local server: uv run lunar-mpc-laya-serve"; });
 reset();
 route();
