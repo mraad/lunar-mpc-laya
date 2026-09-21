@@ -27,6 +27,7 @@ checkpoint land through an engine fault that fixed PD guidance cannot?*
 |---|---|
 | [How MPC and Laya combine](docs/fusion.md) | What each side contributes, the three couplings, why the combination is stronger than either, and what comes next |
 | [Measured results](docs/results.md) | Landings, request following, shield activity and latency for every pilot and fault scenario, with reproduction commands |
+| [Distillation](docs/distillation.md) | Retraining Laya on MPC labels with a telemetry-only prompt: raw 0/90, shielded 90/90 with Laya's choice kept two thirds of the time |
 | [Landing lab](web/README.md) | Interactive VanillaJS page running the adaptive MPC live in the browser |
 
 ## Landing lab in the browser
@@ -87,6 +88,7 @@ lunar_mpc_laya/cli.py     Session (episode loop with fault injection), upstream 
 lunar_mpc_laya/serve.py   local server: page + live /reset and /step decisions from the Python pilot
 scripts/evaluate.py       records every pilot/scenario on seeds 3000-3009 and writes docs/results.json
 scripts/parity.py         records Python flights that the JavaScript port must reproduce
+training/                 telemetry-only prompt, MPC-labelled data, CUDA trainer, distilled pilot, MLX verification
 tests/test_fusion.py      dependency-free checks (fake agents; no MLX)
 web/                      landing lab: lander.js (physics + MPC port), app.js, build.py, Node test
 ```
@@ -134,10 +136,11 @@ This is an exploration, not a flight-certified controller. The beam search is
 incomplete, the cost weights are hand-picked on development seeds 0–9, the
 landing model checks contact at stage ends only, fuel starvation is not
 predicted, and the shield margin is a design choice, not a certified safe set.
-The trained checkpoint still receives requested labels in every prompt: the
-Laya results demonstrate faithful request following under MPC guidance, not
-independent learned piloting, and the shield never fired in the recorded
-flights. Appending the engine estimate to the prompt broke request following
+The original checkpoint receives requested labels in every prompt, so those
+Laya results demonstrate request following, not independent piloting, and the
+shield never fired. The distilled checkpoint ([docs/distillation.md](docs/distillation.md))
+decides from telemetry alone: it cannot land unshielded (0/90) and lands every
+flight shielded (90/90) with about a third of its proposals overridden. Appending the engine estimate to the prompt broke request following
 completely, so that flag is a negative result, not a feature. The fault is a single step change in main-engine
 thrust; sensor noise, delays and other disturbances are untested.
 

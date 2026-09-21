@@ -1,0 +1,6 @@
+# Additional CUDA training environment only; not local inference dependencies.
+torch==2.12.0
+transformers==5.8.1
+safetensors==0.7.0
+huggingface-hub>=0.34,<2
+laya @ git+https://github.com/NandhaKishorM/laya.git@42626c348753fbb17572a813127df2278a1ec527

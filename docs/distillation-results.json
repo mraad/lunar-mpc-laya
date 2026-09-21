@@ -1,0 +1,177 @@
+{
+  "training": {
+    "host_gpus": "CUDA devices 0-2, NVIDIA RTX PRO 6000 Blackwell Server Edition",
+    "epochs": [
+      {
+        "epoch": 1,
+        "rank0_train_loss": 0.8786701946637593,
+        "validation_accuracy": 0.6635400907715583,
+        "per_question": {
+          "rotation": 0.7425113464447807,
+          "engine": 0.5845688350983359
+        },
+        "elapsed_seconds": 29.509335428941995
+      },
+      {
+        "epoch": 2,
+        "rank0_train_loss": 0.742147640781591,
+        "validation_accuracy": 0.7450832072617246,
+        "per_question": {
+          "rotation": 0.7591527987897125,
+          "engine": 0.7310136157337368
+        },
+        "elapsed_seconds": 59.59793141996488
+      },
+      {
+        "epoch": 3,
+        "rank0_train_loss": 0.6654454566965884,
+        "validation_accuracy": 0.7792738275340393,
+        "per_question": {
+          "rotation": 0.7987897125567323,
+          "engine": 0.7597579425113464
+        },
+        "elapsed_seconds": 93.40920325391926
+      },
+      {
+        "epoch": 4,
+        "rank0_train_loss": 0.6029549945331584,
+        "validation_accuracy": 0.7842662632375189,
+        "per_question": {
+          "rotation": 0.7866868381240545,
+          "engine": 0.7818456883509833
+        },
+        "elapsed_seconds": 127.33442985103466
+      },
+      {
+        "epoch": 5,
+        "rank0_train_loss": 0.5778563380493719,
+        "validation_accuracy": 0.7951588502269289,
+        "per_question": {
+          "rotation": 0.7951588502269289,
+          "engine": 0.7951588502269289
+        },
+        "elapsed_seconds": 161.85239366884343
+      },
+      {
+        "epoch": 6,
+        "rank0_train_loss": 0.5505870796971353,
+        "validation_accuracy": 0.7780635400907716,
+        "per_question": {
+          "rotation": 0.7812405446293494,
+          "engine": 0.7748865355521937
+        },
+        "elapsed_seconds": 195.88784260093234
+      },
+      {
+        "epoch": 7,
+        "rank0_train_loss": 0.5314440407763084,
+        "validation_accuracy": 0.7996974281391831,
+        "per_question": {
+          "rotation": 0.7984871406959153,
+          "engine": 0.8009077155824509
+        },
+        "elapsed_seconds": 224.79277110588737
+      },
+      {
+        "epoch": 8,
+        "rank0_train_loss": 0.5230627647992696,
+        "validation_accuracy": 0.7978819969742814,
+        "per_question": {
+          "rotation": 0.794856278366112,
+          "engine": 0.8009077155824509
+        },
+        "elapsed_seconds": 258.6135480608791
+      }
+    ],
+    "best_validation_accuracy": 0.7996974281391831,
+    "weights_sha256": "61a741078dc8058b9848b88f562d392870710cca4f3cf1aff5b160a7a6d6fdfc",
+    "dataset": {
+      "train": {
+        "rows": 50986,
+        "rollout_seeds": [
+          1000,
+          1031
+        ],
+        "labels": {
+          "rotation:left": 4599,
+          "engine:off": 6082,
+          "rotation:hold": 16335,
+          "engine:half": 11614,
+          "rotation:right": 4559,
+          "engine:full": 7797
+        },
+        "sha256": "15adf53ef87b3fc3a878d4cbca5bafe0664702f126806fedc84348a522a278a7"
+      },
+      "validation": {
+        "rows": 6610,
+        "rollout_seeds": [
+          2000,
+          2003
+        ],
+        "labels": {
+          "rotation:left": 604,
+          "engine:off": 865,
+          "rotation:right": 536,
+          "rotation:hold": 2165,
+          "engine:full": 985,
+          "engine:half": 1455
+        },
+        "sha256": "bd048ec8ae51dbfcfd897c2163db779aee4dd37cdb4b4c5a4b4e87ef346de2f1"
+      }
+    }
+  },
+  "parity": {
+    "fixtures": 32,
+    "agreements": 32,
+    "max_probability_error": 0.03603467645645142
+  },
+  "flights": {
+    "distilled-laya": {
+      "1.0": {
+        "flights": 30,
+        "landed": 0,
+        "decisions": 13095,
+        "matched": 2357,
+        "overrides": 0
+      },
+      "0.7": {
+        "flights": 30,
+        "landed": 0,
+        "decisions": 7536,
+        "matched": 925,
+        "overrides": 0
+      },
+      "0.4": {
+        "flights": 30,
+        "landed": 0,
+        "decisions": 4682,
+        "matched": 497,
+        "overrides": 0
+      }
+    },
+    "distilled-assisted": {
+      "1.0": {
+        "flights": 30,
+        "landed": 30,
+        "decisions": 8802,
+        "matched": 5344,
+        "overrides": 3034
+      },
+      "0.7": {
+        "flights": 30,
+        "landed": 30,
+        "decisions": 8835,
+        "matched": 5484,
+        "overrides": 2652
+      },
+      "0.4": {
+        "flights": 30,
+        "landed": 30,
+        "decisions": 10265,
+        "matched": 5686,
+        "overrides": 3769
+      }
+    }
+  },
+  "wall_seconds": 841.4627337499987
+}

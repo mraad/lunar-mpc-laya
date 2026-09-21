@@ -113,12 +113,19 @@ Full tables: [results.md](results.md).
 - Fixed-model MPC landed 30/30 at ×0.7 but 0/30 at ×0.4. Replanning alone
   covers mild faults; adaptation is what covers severe ones.
 
-## 5. Where it goes next
+## 5. Distillation: the shield at work
 
-1. **Distill MPC into Laya.** Generate MPC-labelled data *without* requested
-   labels in the prompt, fine-tune, and measure how often Laya reproduces MPC
-   from telemetry alone. Then the shield's override rate becomes the central
-   metric, and a positive margin becomes meaningful.
+Step 1 of the original plan is done; see [distillation.md](distillation.md).
+Laya retrained on MPC labels with a telemetry-only prompt reaches 80%
+per-question validation accuracy, cannot land a single unshielded flight
+(errors compound once it leaves the teacher's trajectory), and lands 90/90
+with the shield while keeping about two thirds of its own choices. That is the
+first configuration where the fused pilot is neither controller alone.
+
+## 6. Where it goes next
+
+1. **DAgger.** Roll out the shielded pilot, relabel visited states with MPC,
+   retrain; the student learns near its own mistakes.
 2. **Laya as a prior in the beam.** Add `-λ · log p(command)` from Laya's
    probabilities to the stage cost so MPC's search prefers what the model
    would do, while physics still vetoes the infeasible.
