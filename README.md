@@ -1,38 +1,58 @@
 # Lunar MPC + Laya
 
-A lunar lander that lands itself, two different ways, and then both ways at
-once.
+## In plain terms
 
-**The game.** An Atari-style lander with three pads, finite fuel and an engine
-that may silently lose thrust mid-flight. Every 0.2 s the pilot picks one of
-nine commands (tilt left/hold/right × engine off/half/full). Land upright,
-slowly, inside a pad.
+**The game.** A small computer game of landing a spacecraft on the Moon.
+Three landing pads on bumpy ground. The lander has a tilt control and an
+engine with three settings: off, half, full. Every fifth of a second the pilot
+picks one tilt and one engine setting. Land gently, upright, on a pad, before
+the fuel runs out. To make it hard, partway through the flight the engine
+secretly loses more than half its power, and the pilot is not told.
 
-**Two pilots that already existed.**
+**Two very different pilots.**
 
-- **MPC** (model predictive control, from [lunar-mpc](https://github.com/mraad/lunar-mpc)):
-  knows the physics. Each decision it simulates thousands of command sequences
-  three seconds ahead, picks the cheapest, executes the first command, and
-  replans. It also measures how the engine actually responds and updates its
-  thrust estimate in flight. Hand-written; no training data.
-- **Laya** (a small typed-decision model on Apple MLX, from [lunar-laya](https://github.com/mraad/lunar-laya)):
-  reads a short text prompt about the flight and answers two multiple-choice
-  questions. Learned from examples; knows no physics. Its prompt used to carry
-  requests from a simple feedback law that assumed a healthy engine.
+- **MPC is the engineer.** It has the physics written down: how gravity
+  pulls, how much the engine pushes, where the hills are. Before every move it
+  asks "if I do this, then that, then that, where will I be in three seconds?"
+  for thousands of combinations, picks the safest, makes one move, then asks
+  again. It also watches how the ship actually responds: if the engine feels
+  weaker than expected, it lowers its estimate and brakes earlier. It never
+  learned anything; a person wrote its rules.
+- **Laya is the trainee.** A small AI language model that reads a sentence
+  like "altitude 200 m, falling 8 m/s, tilted 3 degrees" and answers two
+  multiple-choice questions: which way to tilt, how much engine. It learned by
+  watching examples. It has no idea what gravity is. Given good hints it does
+  well; given bad hints it crashes.
 
-**What this project does with them.**
+**Three ways they play together.**
 
-1. **MPC writes Laya's prompt.** The requested tilt and power in the prompt
-   now come from adaptive MPC instead of the fixed feedback law. Same Laya
-   weights, same prompt template. Result: through a 60% engine loss, Laya with
-   the old requests lands 0 of 30; with MPC's requests, 30 of 30.
-2. **MPC checks Laya's answer.** Before executing Laya's choice, MPC simulates
-   it forward. If the outcome is predicted worse than MPC's own plan, MPC's
-   command runs instead. Laya keeps its freedom; physics keeps a veto.
-3. **Laya retrained to decide alone.** A second checkpoint learned from MPC's
-   decisions with the requests removed from the prompt. By itself it lands
-   0 of 90 (small mistakes compound). With MPC checking it, 90 of 90, while
-   about two thirds of the executed commands are Laya's own.
+1. **The engineer whispers to the trainee.** Laya's sentence used to end with
+   a hint from a simple rule of thumb that assumed a healthy engine. When the
+   engine weakened, the hint was wrong, Laya followed it, and crashed every
+   time. Swap the hint for MPC's recommendation and the very same Laya lands
+   every time, even with the weak engine. Same brain, better advice.
+2. **The engineer checks the trainee's work.** Instead of overruling Laya
+   every time they disagree, MPC plays Laya's suggestion forward in its head.
+   If it looks fine, Laya's choice goes through. If it looks dangerous, MPC's
+   choice goes instead. Laya keeps its independence; the engineer keeps a veto.
+3. **The trainee learns from the engineer, then flies with a safety net.** A
+   new Laya was trained on thousands of MPC's decisions, with the hints removed
+   from the sentence, so it must decide on its own. Alone, it crashes every
+   flight: one small mistake leads to an unfamiliar situation, then another
+   mistake, and so on. With the engineer's veto on, it lands every flight, and
+   about two thirds of the moves that fly the ship are Laya's own.
+
+**Why bother, if the engineer alone can land?** The engineer can only do what
+its rules say. It cannot be taught new preferences from examples, cannot take
+instructions in plain language, and cannot tell you how confident it is. The
+trainee can do all three. The goal is a pilot with the trainee's flexibility
+and the engineer's guarantee that physics gets the last word. Today that pilot
+exists and lands; the next step is more training so the engineer has to step
+in less often.
+
+The animation below shows this exact flight: the AI proposing each move, the
+engineer vetoing about one in three, the engine failing at ten seconds, and a
+soft landing at seventy.
 
 ![Distilled Laya with the MPC shield landing through a 60% engine loss](docs/assets/distilled-shield.gif)
 
@@ -40,9 +60,27 @@ slowly, inside a pad.
 MPC shielding it, engine thrust cut to 40% at 10 s. The shield replaced 109 of
 348 proposals. See [docs/media.md](docs/media.md).*
 
-**Try it.** A browser page runs the MPC live (click anywhere in the sky, pick
-a pad, add a fault, launch). With the local server it also flies the real Laya
-checkpoints and replays every recorded decision with the model's probabilities.
+## For the technical reader
+
+Every 0.2 s decision, adaptive MPC (recursive-least-squares thrust estimate +
+NumPy beam search over the nine discrete commands, ported from
+[lunar-mpc](https://github.com/mraad/lunar-mpc) to the arcade physics of
+[lunar-laya](https://github.com/mraad/lunar-laya)) does three jobs:
+
+1. **Guidance**: its first planned command becomes the requested rotation and
+   power in Laya's prompt. The template is upstream's, byte for byte, so the
+   existing checkpoint needs no retraining. Result at ×0.4 thrust: 0/30 with
+   the old PD requests, 30/30 with MPC's.
+2. **Shield**: Laya's proposal is forced as the first command of a second beam
+   search; it is replaced only when its best rollout costs more than MPC's own
+   plan by a margin.
+3. **Teacher**: a second checkpoint was fine-tuned on MPC labels with a
+   telemetry-only prompt. Raw it lands 0/90; shielded 90/90 with about a third
+   of proposals overridden.
+
+A browser page runs the MPC live (click anywhere in the sky, pick a pad, add a
+fault, launch). With the local server it also flies both Laya checkpoints and
+replays every recorded decision with the model's probabilities.
 
 | Document | Contents |
 |---|---|
