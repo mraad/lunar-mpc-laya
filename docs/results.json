@@ -1,0 +1,423 @@
+{
+  "pd-baseline/nominal": {
+    "pilot": "pd-baseline",
+    "scenario": "nominal",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 11147,
+    "agreements": 0,
+    "laya_decisions": 0,
+    "interventions": 0,
+    "fuel_mean": 82.17,
+    "latency_p50_ms": 0.003,
+    "solve_p50_ms": null,
+    "thrust_estimate_final": null
+  },
+  "pd-baseline/fault-0.7": {
+    "pilot": "pd-baseline",
+    "scenario": "fault-0.7",
+    "flights": 30,
+    "landed": 17,
+    "outcomes": {
+      "landed": 17,
+      "crashed": 13
+    },
+    "decisions": 6266,
+    "agreements": 0,
+    "laya_decisions": 0,
+    "interventions": 0,
+    "fuel_mean": 86.52,
+    "latency_p50_ms": 0.003,
+    "solve_p50_ms": null,
+    "thrust_estimate_final": null
+  },
+  "pd-baseline/fault-0.4": {
+    "pilot": "pd-baseline",
+    "scenario": "fault-0.4",
+    "flights": 30,
+    "landed": 0,
+    "outcomes": {
+      "crashed": 30
+    },
+    "decisions": 4787,
+    "agreements": 0,
+    "laya_decisions": 0,
+    "interventions": 0,
+    "fuel_mean": 86.46,
+    "latency_p50_ms": 0.003,
+    "solve_p50_ms": null,
+    "thrust_estimate_final": null
+  },
+  "mpc/nominal": {
+    "pilot": "mpc",
+    "scenario": "nominal",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 8815,
+    "agreements": 0,
+    "laya_decisions": 0,
+    "interventions": 0,
+    "fuel_mean": 85.71,
+    "latency_p50_ms": 3.821,
+    "solve_p50_ms": 3.814,
+    "thrust_estimate_final": [
+      5.0,
+      5.0,
+      5.0
+    ]
+  },
+  "mpc/fault-0.7": {
+    "pilot": "mpc",
+    "scenario": "fault-0.7",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 8884,
+    "agreements": 0,
+    "laya_decisions": 0,
+    "interventions": 0,
+    "fuel_mean": 80.56,
+    "latency_p50_ms": 3.787,
+    "solve_p50_ms": 3.781,
+    "thrust_estimate_final": [
+      3.5,
+      3.5,
+      3.5
+    ]
+  },
+  "mpc/fault-0.4": {
+    "pilot": "mpc",
+    "scenario": "fault-0.4",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 10327,
+    "agreements": 0,
+    "laya_decisions": 0,
+    "interventions": 0,
+    "fuel_mean": 62.59,
+    "latency_p50_ms": 3.782,
+    "solve_p50_ms": 3.777,
+    "thrust_estimate_final": [
+      2.0,
+      2.0,
+      2.0
+    ]
+  },
+  "mpc-fixed/nominal": {
+    "pilot": "mpc-fixed",
+    "scenario": "nominal",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 8815,
+    "agreements": 0,
+    "laya_decisions": 0,
+    "interventions": 0,
+    "fuel_mean": 85.71,
+    "latency_p50_ms": 3.767,
+    "solve_p50_ms": 3.761,
+    "thrust_estimate_final": [
+      5.0,
+      5.0,
+      5.0
+    ]
+  },
+  "mpc-fixed/fault-0.7": {
+    "pilot": "mpc-fixed",
+    "scenario": "fault-0.7",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 8429,
+    "agreements": 0,
+    "laya_decisions": 0,
+    "interventions": 0,
+    "fuel_mean": 81.58,
+    "latency_p50_ms": 3.778,
+    "solve_p50_ms": 3.773,
+    "thrust_estimate_final": [
+      5.0,
+      5.0,
+      5.0
+    ]
+  },
+  "mpc-fixed/fault-0.4": {
+    "pilot": "mpc-fixed",
+    "scenario": "fault-0.4",
+    "flights": 30,
+    "landed": 0,
+    "outcomes": {
+      "crashed": 30
+    },
+    "decisions": 5373,
+    "agreements": 0,
+    "laya_decisions": 0,
+    "interventions": 0,
+    "fuel_mean": 83.22,
+    "latency_p50_ms": 3.768,
+    "solve_p50_ms": 3.763,
+    "thrust_estimate_final": [
+      5.0,
+      5.0,
+      5.0
+    ]
+  },
+  "pd-laya/nominal": {
+    "pilot": "pd-laya",
+    "scenario": "nominal",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 11147,
+    "agreements": 11147,
+    "laya_decisions": 11147,
+    "interventions": 0,
+    "fuel_mean": 82.17,
+    "latency_p50_ms": 10.333,
+    "solve_p50_ms": null,
+    "thrust_estimate_final": null
+  },
+  "pd-laya/fault-0.7": {
+    "pilot": "pd-laya",
+    "scenario": "fault-0.7",
+    "flights": 30,
+    "landed": 17,
+    "outcomes": {
+      "landed": 17,
+      "crashed": 13
+    },
+    "decisions": 6266,
+    "agreements": 6266,
+    "laya_decisions": 6266,
+    "interventions": 0,
+    "fuel_mean": 86.52,
+    "latency_p50_ms": 14.638,
+    "solve_p50_ms": null,
+    "thrust_estimate_final": null
+  },
+  "pd-laya/fault-0.4": {
+    "pilot": "pd-laya",
+    "scenario": "fault-0.4",
+    "flights": 30,
+    "landed": 0,
+    "outcomes": {
+      "crashed": 30
+    },
+    "decisions": 4787,
+    "agreements": 4783,
+    "laya_decisions": 4787,
+    "interventions": 0,
+    "fuel_mean": 86.46,
+    "latency_p50_ms": 11.006,
+    "solve_p50_ms": null,
+    "thrust_estimate_final": null
+  },
+  "mpc-laya/nominal": {
+    "pilot": "mpc-laya",
+    "scenario": "nominal",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 8815,
+    "agreements": 8815,
+    "laya_decisions": 8815,
+    "interventions": 0,
+    "fuel_mean": 85.71,
+    "latency_p50_ms": 14.218,
+    "solve_p50_ms": 3.83,
+    "thrust_estimate_final": [
+      5.0,
+      5.0,
+      5.0
+    ]
+  },
+  "mpc-laya/fault-0.7": {
+    "pilot": "mpc-laya",
+    "scenario": "fault-0.7",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 8884,
+    "agreements": 8884,
+    "laya_decisions": 8884,
+    "interventions": 0,
+    "fuel_mean": 80.56,
+    "latency_p50_ms": 14.277,
+    "solve_p50_ms": 3.916,
+    "thrust_estimate_final": [
+      3.5,
+      3.5,
+      3.5
+    ]
+  },
+  "mpc-laya/fault-0.4": {
+    "pilot": "mpc-laya",
+    "scenario": "fault-0.4",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 10327,
+    "agreements": 10327,
+    "laya_decisions": 10327,
+    "interventions": 0,
+    "fuel_mean": 62.59,
+    "latency_p50_ms": 14.345,
+    "solve_p50_ms": 3.937,
+    "thrust_estimate_final": [
+      2.0,
+      2.0,
+      2.0
+    ]
+  },
+  "mpc-assisted/nominal": {
+    "pilot": "mpc-assisted",
+    "scenario": "nominal",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 8815,
+    "agreements": 8815,
+    "laya_decisions": 8815,
+    "interventions": 0,
+    "fuel_mean": 85.71,
+    "latency_p50_ms": 14.33,
+    "solve_p50_ms": 3.968,
+    "thrust_estimate_final": [
+      5.0,
+      5.0,
+      5.0
+    ]
+  },
+  "mpc-assisted/fault-0.7": {
+    "pilot": "mpc-assisted",
+    "scenario": "fault-0.7",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 8884,
+    "agreements": 8884,
+    "laya_decisions": 8884,
+    "interventions": 0,
+    "fuel_mean": 80.56,
+    "latency_p50_ms": 14.333,
+    "solve_p50_ms": 3.958,
+    "thrust_estimate_final": [
+      3.5,
+      3.5,
+      3.5
+    ]
+  },
+  "mpc-assisted/fault-0.4": {
+    "pilot": "mpc-assisted",
+    "scenario": "fault-0.4",
+    "flights": 30,
+    "landed": 30,
+    "outcomes": {
+      "landed": 30
+    },
+    "decisions": 10327,
+    "agreements": 10327,
+    "laya_decisions": 10327,
+    "interventions": 0,
+    "fuel_mean": 62.59,
+    "latency_p50_ms": 14.189,
+    "solve_p50_ms": 3.875,
+    "thrust_estimate_final": [
+      2.0,
+      2.0,
+      2.0
+    ]
+  },
+  "mpc-laya-estimate/nominal": {
+    "pilot": "mpc-laya-estimate",
+    "scenario": "nominal",
+    "flights": 30,
+    "landed": 0,
+    "outcomes": {
+      "out_of_bounds": 30
+    },
+    "decisions": 2864,
+    "agreements": 0,
+    "laya_decisions": 2864,
+    "interventions": 0,
+    "fuel_mean": 90.86,
+    "latency_p50_ms": 15.23,
+    "solve_p50_ms": 3.88,
+    "thrust_estimate_final": [
+      5.0,
+      5.0,
+      5.0
+    ]
+  },
+  "mpc-laya-estimate/fault-0.7": {
+    "pilot": "mpc-laya-estimate",
+    "scenario": "fault-0.7",
+    "flights": 30,
+    "landed": 0,
+    "outcomes": {
+      "out_of_bounds": 22,
+      "crashed": 8
+    },
+    "decisions": 5276,
+    "agreements": 233,
+    "laya_decisions": 5276,
+    "interventions": 0,
+    "fuel_mean": 90.15,
+    "latency_p50_ms": 15.038,
+    "solve_p50_ms": 3.865,
+    "thrust_estimate_final": [
+      4.061,
+      4.02,
+      4.567
+    ]
+  },
+  "mpc-laya-estimate/fault-0.4": {
+    "pilot": "mpc-laya-estimate",
+    "scenario": "fault-0.4",
+    "flights": 30,
+    "landed": 0,
+    "outcomes": {
+      "out_of_bounds": 20,
+      "crashed": 10
+    },
+    "decisions": 5271,
+    "agreements": 212,
+    "laya_decisions": 5271,
+    "interventions": 0,
+    "fuel_mean": 89.53,
+    "latency_p50_ms": 14.646,
+    "solve_p50_ms": 3.897,
+    "thrust_estimate_final": [
+      4.008,
+      3.76,
+      4.31
+    ]
+  }
+}

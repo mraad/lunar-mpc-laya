@@ -1,0 +1,10 @@
+Lunar MPC + Laya
+Copyright 2026 mraad
+
+Licensed under the Apache License, Version 2.0; see LICENSE.
+
+This project depends on lunar-laya (Apache-2.0, https://github.com/mraad/lunar-laya)
+and ports controller ideas from lunar-mpc (Apache-2.0, https://github.com/mraad/lunar-mpc).
+Laya (https://github.com/NandhaKishorM/laya) and Laya-MLX (https://github.com/mizorewww/laya-mlx)
+are used as dependencies and retain their upstream licenses and model terms.
+No Atari assets or code are included; Atari's name identifies the inspiration only.

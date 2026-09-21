@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lunar-mpc-laya"
+version = "0.1.0"
+description = "Adaptive MPC as guidance and predictive shield for Laya on the arcade lunar lander"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "lunar-laya",
+]
+
+[project.optional-dependencies]
+mlx = ["lunar-laya[mlx]"]
+
+[project.scripts]
+lunar-mpc-laya = "lunar_mpc_laya.cli:main"
+lunar-mpc-laya-serve = "lunar_mpc_laya.serve:main"
+
+[tool.uv.sources]
+# Sibling checkout, as lunar-laya itself pins laya-mlx; clone both repos side by side.
+lunar-laya = { path = "../lunar-laya", editable = true }
+
+[project.urls]
+Repository = "https://github.com/mraad/lunar-mpc-laya"
+
+[tool.hatch.build.targets.wheel]
+packages = ["lunar_mpc_laya"]

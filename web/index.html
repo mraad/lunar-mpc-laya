@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lunar MPC · Landing Lab</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="lander.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+<main>
+  <header>
+    <div><div class="eyebrow">ADAPTIVE MPC + LAYA · LANDING LAB</div><h1 id="page-title">Landing lab</h1>
+      <nav aria-label="Pages"><a href="#lab" data-page="lab" class="active">Landing lab</a><a href="#recorded" data-page="recorded">Recorded Laya flights</a></nav></div>
+    <div class="badge" id="badge">● &nbsp; READY</div>
+  </header>
+  <div id="notice" role="status" aria-live="polite"></div>
+
+  <section id="lab-page" class="page">
+  <p class="lead">Click the sky to place the lander, pick a pad, launch. <b>Browser MPC</b> runs the beam-search controller here in VanillaJS. <b>Live Laya</b> pilots send each decision to the local Python server, where the real Laya model on MLX answers the prompt and the MPC shield checks it.</p>
+  <div class="grid">
+    <section class="card scene">
+      <div class="metrics">
+        <div><label>PAD ALTITUDE</label><strong id="altitude">—</strong></div>
+        <div><label>VERTICAL SPEED</label><strong id="vertical">—</strong></div>
+        <div><label>HORIZONTAL SPEED</label><strong id="horizontal">—</strong></div>
+        <div><label>TILT</label><strong id="tilt">—</strong></div>
+        <div><label>FUEL</label><strong id="fuel">—</strong></div>
+        <div><label>ENGINE ESTIMATE</label><strong id="estimate">—</strong></div>
+      </div>
+      <canvas id="canvas" width="1100" height="640" aria-label="Lunar terrain with three landing pads; click to place the lander"></canvas>
+      <div class="scene-bottom"><span id="status">READY · CLICK THE SKY TO PLACE THE LANDER</span><span id="time">T+ 0.0 s</span><span id="solve">PLAN —</span></div>
+    </section>
+    <aside class="panel">
+      <section class="card">
+        <div class="section-title">PILOT</div>
+        <select id="pilot" aria-label="Pilot"><option value="mpc">Browser MPC (no model)</option><option value="mpc-laya" disabled>Live Laya · MPC requests, raw execution</option><option value="mpc-assisted" disabled>Live Laya · MPC requests + predictive shield</option></select>
+        <p id="pilot-note" class="small">Live Laya needs <code>uv run lunar-mpc-laya-serve</code>.</p>
+      </section>
+      <section class="card">
+        <div class="section-title">START</div>
+        <div class="row"><span>Position</span><strong id="position">x 500 · y 450</strong></div>
+        <label>Horizontal speed <span id="vx-label">0.0</span> m/s<input id="vx" type="range" min="-15" max="15" step="0.5" value="0"></label>
+        <label>Descent speed <span id="vy-label">-8.0</span> m/s<input id="vy" type="range" min="-20" max="5" step="0.5" value="-8"></label>
+        <label>Tilt <span id="angle-label">0</span>°<input id="angle" type="range" min="-30" max="30" step="1" value="0"></label>
+        <button id="random" class="ghost">Randomize start</button>
+      </section>
+      <section class="card">
+        <div class="section-title">TARGET PAD</div>
+        <div class="pads"><button id="pad-0" data-pad="0">01 · 2×</button><button id="pad-1" data-pad="1" class="active">02 · 1×</button><button id="pad-2" data-pad="2">03 · 4×</button></div>
+        <div class="section-title">ENGINE FAULT AT 10 s</div>
+        <select id="fault" aria-label="Engine fault"><option value="1">No fault</option><option value="0.7">Thrust ×0.7</option><option value="0.4">Thrust ×0.4</option></select>
+        <label class="check"><input id="adaptive" type="checkbox" checked> Learn thrust gain in flight (adaptive MPC)</label>
+      </section>
+      <section class="card">
+        <div class="section-title">FLIGHT</div>
+        <div class="buttons"><button id="launch">Launch</button><button id="reset" class="ghost">Reset</button>
+          <label>Speed <select id="speed"><option value="1">1×</option><option value="4" selected>4×</option><option value="16">16×</option></select></label></div>
+        <div class="row"><span>Command</span><strong id="command">—</strong></div>
+        <div class="row"><span>Plan cost</span><strong id="cost">—</strong></div>
+        <div class="row"><span>Outcome</span><strong id="outcome">—</strong></div>
+        <div class="row"><span>Score</span><strong id="score">—</strong></div>
+        <div id="log" class="log"></div>
+      </section>
+      <section class="card" id="lab-laya" hidden>
+        <div class="section-title">LAYA · LIVE MLX DECISION</div>
+        <div id="lab-probabilities"></div>
+        <div class="row"><span>Guidance requested</span><strong id="lab-requested">—</strong></div>
+        <div class="row"><span>Laya proposed</span><strong id="lab-proposed">—</strong></div>
+        <div class="row"><span>Executed</span><strong id="lab-executed">—</strong></div>
+        <div id="lab-shield" class="shield"></div>
+        <div class="row"><span>Decision latency</span><strong id="lab-latency">—</strong></div>
+      </section>
+    </aside>
+  </div>
+  <section class="notes card">
+    <h2>What runs here</h2>
+    <p><b>Browser MPC is a live simulation, not a recording.</b> The physics and the adaptive MPC are a line-for-line port of the Python package (same constants, substeps, landing rules, cost weights, beam width 32, horizon 15 stages). A Node check replays Python-recorded flights and matches every command. The dashed line is the current 3 s plan; the solid trail is the executed path.</p>
+    <p><b>Live Laya runs in Python, not in the browser.</b> With the local server, each decision is a real Laya inference on Apple MLX: MPC computes the requested labels, Laya answers the two choice questions, and in shield mode MPC rolls out Laya's proposal and overrides only when it is predicted worse than its own plan. The browser only draws what the server returns.</p>
+    <p><b>Adaptive vs fixed.</b> The controller is told nothing about the fault. With learning on, the thrust estimate moves toward the true value within a few seconds and the plan changes with it. With learning off it keeps planning for the nominal engine; at ×0.4 that lands too fast. Landing needs |vx| ≤ 2 m/s, descent ≤ 3 m/s, |tilt| ≤ 8° inside the pad. Cost weights were hand-picked on ten development seeds; some starts are unrecoverable and the search has no guarantee.</p>
+  </section>
+  </section>
+
+  <section id="recorded-page" class="page" hidden>
+  <p class="lead">Python-recorded flights with the actual Laya checkpoint: every decision's probabilities, MPC request, Laya proposal, executed command and shield activity, on the held-out seeds 3000–3009. Build them with <code>python3 web/build.py dist/eval/*laya*.json dist/eval/mpc-assisted*.json</code>.</p>
+  <div class="grid">
+    <section class="card scene">
+      <div class="metrics">
+        <div><label>RUN</label><strong><select id="run" aria-label="Recorded run"></select></strong></div>
+        <div><label>FLIGHT</label><strong><select id="flight" aria-label="Recorded flight"></select></strong></div>
+        <div><label>VERTICAL SPEED</label><strong id="rec-vertical">—</strong></div>
+        <div><label>HORIZONTAL SPEED</label><strong id="rec-horizontal">—</strong></div>
+        <div><label>TILT</label><strong id="rec-tilt">—</strong></div>
+        <div><label>ENGINE ESTIMATE</label><strong id="rec-estimate">—</strong></div>
+      </div>
+      <canvas id="rec-canvas" width="1100" height="640" aria-label="Recorded lunar flight above terrain"></canvas>
+      <div class="scene-bottom"><span id="rec-status">NO RECORDINGS LOADED</span><span id="rec-time">T+ 0.0 s</span><span id="rec-frame">DECISION —</span></div>
+      <div class="playback"><div class="buttons"><button id="rec-play" disabled>Play</button><button id="rec-restart" class="ghost" disabled>↺ Restart</button><label>Speed <select id="rec-speed"><option value="1">1×</option><option value="4" selected>4×</option><option value="16">16×</option></select></label></div>
+        <input id="rec-timeline" type="range" min="0" max="1" value="0" aria-label="Decision timeline" disabled></div>
+    </section>
+    <aside class="panel">
+      <section class="card">
+        <div class="section-title">LAYA · RECORDED MLX DECISION</div>
+        <div id="rec-probabilities"></div>
+        <div class="row"><span>Guidance requested</span><strong id="rec-requested">—</strong></div>
+        <div class="row"><span>Laya proposed</span><strong id="rec-proposed">—</strong></div>
+        <div class="row"><span>Executed</span><strong id="rec-executed">—</strong></div>
+        <div id="rec-shield" class="shield"></div>
+        <div class="row"><span>Decision latency</span><strong id="rec-latency">—</strong></div>
+      </section>
+      <section class="card">
+        <div class="section-title">FLIGHT SUMMARY</div>
+        <div class="row"><span>Outcome</span><strong id="rec-outcome">—</strong></div>
+        <div class="row"><span>Requests matched</span><strong id="rec-agreements">—</strong></div>
+        <div class="row"><span>Shield overrides</span><strong id="rec-interventions">—</strong></div>
+        <div class="row"><span>Decisions</span><strong id="rec-decisions">—</strong></div>
+        <div class="row"><span>Fuel left</span><strong id="rec-fuel">—</strong></div>
+      </section>
+      <section class="card"><div class="section-title">RUNS IN THIS BUILD</div><div id="rec-table" class="small"></div></section>
+    </aside>
+  </div>
+  </section>
+
+  <footer><span>lunar-mpc-laya · VanillaJS · no build framework</span><a href="https://github.com/mraad/lunar-mpc-laya">github.com/mraad/lunar-mpc-laya</a></footer>
+</main>
+</body>
+</html>
