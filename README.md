@@ -85,7 +85,7 @@ replays every recorded decision with the model's probabilities.
 
 | Document | Contents |
 |---|---|
-| [How MPC and Laya combine](docs/fusion.md) | What each side contributes, the three couplings, why the combination is stronger than either, and what comes next |
+| [How MPC and Laya combine](docs/fusion.md) | What each side contributes, the three couplings, why the combination is stronger than either, what a swappable proposer would change, and what comes next |
 | [Measured results](docs/results.md) | Landings, request following, shield activity and latency for every pilot and fault scenario, with reproduction commands |
 | [Distillation](docs/distillation.md) | Retraining Laya on MPC labels with a telemetry-only prompt: raw 1/90, shielded 90/90 with Laya's choice kept more than four fifths of the time |
 | [Landing lab](web/README.md) | The browser page: live MPC, live Laya pilots through the local server, recorded flights |
