@@ -23,10 +23,16 @@ async function api(path, body) {
 // `blend` mixes the pose from the stage that just ended into the one before it, which
 // puts the drawn lander one stage behind the telemetry but moves it every frame.
 function pose(before, after, blend) {
-  if (!before || after.status !== "flying") return after;
+  if (!before) return after;
   const t = Math.max(0, Math.min(1, blend));
+  if (t >= 1) return after;
+  // A stage that ends in touchdown is interpolated like any other, or the final
+  // approach - the part worth watching - would snap. The terminal status only
+  // applies once the blend completes, so the hull keeps its flying colour until
+  // it actually arrives.
   const spin = L.wrap(after.angle - before.angle);
-  return { ...after, x: before.x + (after.x - before.x) * t, y: before.y + (after.y - before.y) * t,
+  return { ...after, status: before.status,
+    x: before.x + (after.x - before.x) * t, y: before.y + (after.y - before.y) * t,
     angle: L.wrap(before.angle + spin * t) };
 }
 

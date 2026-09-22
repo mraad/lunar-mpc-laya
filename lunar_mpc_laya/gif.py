@@ -87,20 +87,28 @@ def render(record, episode, index):
     # centre in map units (vertical scale .43 px/m) so they touch, never sink.
     foot = RADIUS * .43
     # Same chamfered-box lander the web pages draw, in units of one eighth of the
-    # hull radius; the hull is enlarged 3.2x for legibility while the footpads stay
-    # at exactly `foot` below the centre.
+    # hull radius. To scale it would be five pixels across at this vertical
+    # scale, so it is drawn as a legible symbol: `u` enlarges it and `lift`
+    # anchors it by its footpads instead of its centre, so the pads sit exactly
+    # on `foot`, the contact point, and no part of the body is ever drawn inside
+    # the terrain. The body therefore rides above the true hull centre by that
+    # much, the same exaggeration as its size.
     u = foot / 8 * 3.2
-    hull = [(-6, -7), (-4, -9), (4, -9), (6, -7), (6, 1), (4, 3), (-4, 3), (-6, 1)]
+    lift = 8 * u - foot
+
+    def part(points):
+        return ship([(a * u, b * u - lift) for a, b in points])
+
     if not terminal and d["executed"]["throttle"] > 0 and state["fuel"] > 0:
-        reach = (6 + 11 * d["executed"]["throttle"]) * u
-        draw.polygon(ship([(-1.5 * u, 5 * u), (0, 5 * u + reach), (1.5 * u, 5 * u)]), fill=AMBER)
-    draw.polygon(ship([(-1.7 * u, 3 * u), (1.7 * u, 3 * u), (1.1 * u, 5.2 * u), (-1.1 * u, 5.2 * u)]), fill=GRID)
-    draw.polygon(ship([(px * u, py * u) for px, py in hull]), fill=PANEL, outline=RED if crashed else TEXT)
-    draw.line(ship([(-6 * u, -1.2 * u), (6 * u, -1.2 * u)]), fill=RED if crashed else TEXT)
-    draw.polygon(ship([(-2.2 * u, -6.4 * u), (2.2 * u, -6.4 * u), (2.2 * u, -2 * u), (-2.2 * u, -2 * u)]), fill=GRID)
+        draw.polygon(part([(-1.5, 5), (0, 5 + 6 + 11 * d["executed"]["throttle"]), (1.5, 5)]), fill=AMBER)
+    draw.polygon(part([(-1.7, 3), (1.7, 3), (1.1, 5.2), (-1.1, 5.2)]), fill=GRID)
+    draw.polygon(part([(-6, -7), (-4, -9), (4, -9), (6, -7), (6, 1), (4, 3), (-4, 3), (-6, 1)]),
+                 fill=PANEL, outline=RED if crashed else TEXT)
+    draw.line(part([(-6, -1.2), (6, -1.2)]), fill=RED if crashed else TEXT)
+    draw.polygon(part([(-2.2, -6.4), (2.2, -6.4), (2.2, -2), (-2.2, -2)]), fill=GRID)
     for sign in (-1, 1):
-        draw.line(ship([(sign * 4 * u, 3 * u), (sign * 7.2 * u, foot)]), fill=TEXT)
-        draw.line(ship([(sign * 5.8 * u, foot), (sign * 8.6 * u, foot)]), fill=TEXT, width=2)
+        draw.line(part([(sign * 4, 3), (sign * 7.2, 8)]), fill=TEXT)
+        draw.line(part([(sign * 5.8, 8), (sign * 8.6, 8)]), fill=TEXT, width=2)
     status = state["status"].upper().replace("_", " ") if terminal else "FLYING"
     text(38, 516, f"{status}   T+ {state['time']:5.1f} s   tilt {state['angle']:+.0f}°", 12, RED if crashed else MINT)
 

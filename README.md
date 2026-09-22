@@ -234,8 +234,8 @@ shielded too. The shield can only be as good as MPC's own plan.
 The original checkpoint receives requested labels in every prompt, so those
 Laya results demonstrate request following, not independent piloting, and the
 shield never fired. The distilled checkpoint ([docs/distillation.md](docs/distillation.md))
-decides from telemetry alone: it cannot land unshielded (1/90) and lands every
-flight shielded (90/90) with 12-17% of its proposals overridden. Appending the engine estimate to the prompt broke request following
+decides from telemetry alone: unshielded it lands 1 of 90 flights and lands
+every flight shielded (90/90), with 12-17% of its proposals overridden. Appending the engine estimate to the prompt broke request following
 completely, so that flag is a negative result, not a feature. The fault is a single step change in main-engine
 thrust; sensor noise, delays and other disturbances are untested.
 
