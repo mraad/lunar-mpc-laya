@@ -40,6 +40,16 @@ at the same pinned revision, last two encoder layers plus head trainable
 (24,801,793 parameters), AdamW, cosine schedule, BF16 autocast, seed 718,
 all four CUDA devices on the same host, one process per GPU, batch 16 per GPU.
 
+The prompt is built by `lunar_mpc_laya.distilled.observation(game, previous)`,
+re-exported through `training/prompt.py` so the CUDA trainer needs only the
+training package layout. `previous` is the `Command` flown last stage, rendered
+by `command_words` into the same vocabulary the answer choices use, or "No
+command has been flown yet." on the first decision of a flight.
+`DistilledPilot.decide` passes `self.previous`, which `MPCPilot.observe` sets
+after each executed command and `MPCPilot.reset` clears, so the prompt and the
+controller's switching penalty always read the same history and neither carries
+across episodes.
+
 Files: `training/prompt.py` (questions and prompt), `training/data.py`,
 `training/train.py` (copied, question import and metadata changed),
 `training/pilot.py` (`DistilledPilot`), `training/verify_mlx.py`,

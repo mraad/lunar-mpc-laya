@@ -12,6 +12,7 @@ three couplings work, what the measurements support, and what remains open.
 | Output | The lowest-cost command sequence found, its predicted path and cost | A choice per question, with probabilities and a confidence |
 | Knows physics | Yes: thrust, gravity, turn rate, contact rules, terrain | No |
 | Looks ahead | 3 s beam search, replanned every decision | No |
+| Remembers the last move | Yes: the stage cost charges for changing command | Yes: the flown command is in the distilled prompt |
 | Adapts in flight | Learns the thrust gain from the measured motion | No |
 | Learns from data | No; cost weights are hand-picked | Yes: supervised fine-tuning on labelled decisions |
 | Explains itself | Plan, predicted path, cost, model estimate | Option probabilities, confidence, the exact prompt |
@@ -113,7 +114,29 @@ Full tables: [results.md](results.md).
 - Fixed-model MPC landed 30/30 at ×0.7 but 0/30 at ×0.4. Replanning alone
   covers mild faults; adaptation is what covers severe ones.
 
-## 5. Distillation: the shield at work
+## 5. One state both sides must share
+
+The controller's stage cost charges for changing command between stages, which
+is what keeps a flight smooth rather than a chatter of re-picked commands (see
+[results.md](results.md) for the measurement). That makes the command flown last
+stage part of the controller's state, not just its output, and it has a
+consequence for the seam.
+
+A teacher whose choice depends on the flown command cannot be imitated by a
+student that cannot see it: roughly four decisions in five are now "hold what
+you are doing", and which command that is, is exactly the hidden variable. So
+the distilled prompt carries it. This is not the hint the distillation
+experiment removed. MPC's *requested* command is a teacher's answer, and the
+first experiment showed Laya copies it verbatim; the flown command is actuator
+state any onboard controller can read from its own vehicle. The distinction is
+the whole reason the distilled pilot still has to decide something.
+
+The practical rule is that both sides read the same history and reset it
+together: `MPCPilot.observe` records the executed command, the beam search
+charges the first stage against it, the prompt names it, and `MPCPilot.reset`
+clears it with the thrust estimate at every episode boundary.
+
+## 6. Distillation: the shield at work
 
 Step 1 of the original plan is done; see [distillation.md](distillation.md).
 Laya retrained on MPC labels with a telemetry-only prompt reaches 90%
@@ -123,7 +146,7 @@ shield while keeping more than four fifths of its own choices. That is the
 first configuration where the fused pilot is neither controller alone, and the
 accuracy that did nothing for the raw pilot shows up as less shield work.
 
-## 6. Where it goes next
+## 7. Where it goes next
 
 1. **DAgger.** Roll out the shielded pilot, relabel visited states with MPC,
    retrain; the student learns near its own mistakes.

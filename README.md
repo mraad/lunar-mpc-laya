@@ -135,7 +135,8 @@ Pilots: `pd-baseline` and `pd-laya` are upstream's PD guidance for comparison;
 `mpc` is MPC alone; `mpc-laya` executes Laya's choices directly with MPC
 requests in the prompt; `mpc-assisted` adds the predictive shield. `--fixed-model`
 disables learning (ablation), `--thrust-scale` and `--fault-at` set the fault
-(default: no fault), `--margin` sets the shield tolerance, `--prompt-estimate`
+(default: no fault), `--switch` sets the command-switching cost (0 disables the
+smoothing), `--margin` sets the shield tolerance, `--prompt-estimate`
 appends the engine estimate to the prompt (changes the trained template; measured
 separately). `uv run lunar-mpc-laya --help` lists the rest.
 
@@ -143,14 +144,14 @@ separately). `uv run lunar-mpc-laya --help` lists the rest.
 lunar_mpc_laya/mpc.py     Dynamics (scalar RLS on thrust gain) and AdaptiveMPC (beam search)
 lunar_mpc_laya/pilot.py   MPCPilot: upstream Pilot with MPC reference and predictive shield
 lunar_mpc_laya/cli.py     Session (episode loop with fault injection), upstream JSON schema and replay
-lunar_mpc_laya/distilled.py  telemetry-only prompt and the distilled pilot (Laya decides, MPC shields)
+lunar_mpc_laya/distilled.py  telemetry prompt with the flown command, and the distilled pilot (Laya decides, MPC shields)
 lunar_mpc_laya/serve.py   local server: page + live /reset and /step decisions from the Python pilots
 lunar_mpc_laya/gif.py     documentation GIF renderer (Pillow, media extra)
 scripts/evaluate.py       records every pilot/scenario on seeds 3000-3009 and writes docs/results.json
 scripts/parity.py         records Python flights that the JavaScript port must reproduce
 training/                 telemetry-only prompt, MPC-labelled data, CUDA trainer, distilled pilot, MLX verification
 tests/test_fusion.py      dependency-free checks (fake agents; no MLX)
-web/                      landing lab: lander.js (physics + MPC port), app.js, build.py, Node test
+web/                      landing lab: lander.js (physics + MPC port + shared lander art), app.js, build.py, Node test
 ```
 
 ## How it works
@@ -188,6 +189,24 @@ treated as known constants: learning gravity too made thrust and gravity
 collinear during a sustained upright burn, and the estimates drifted along the
 unobservable direction. Coasting, terminal and fuel-starved transitions are
 excluded.
+
+## Drawing the flight
+
+A decision covers 0.2 s, so a page that redraws only when a decision lands
+animates at 5 fps however smooth the trajectory is. Both canvas tabs keep the
+state the stage started from, mix the state it ended in back into it by the
+fraction of the stage the playback clock has covered, and redraw every
+animation frame. The drawn lander is at most one stage behind the telemetry
+panel; the panel itself still reports exact decision states, and the trail and
+predicted path are unchanged.
+
+`Lander.drawLander` is one chamfered-box lander shared byte for byte with
+lunar-mpc and lunar-laya, so the same vehicle appears in all three projects and
+in the documentation GIF. Its coordinates are in units of `RADIUS / 8` with y
+pointing down, which keeps the footpads exactly one hull radius below the
+centre: the game treats the hull as a circle of `RADIUS` and lands when
+`y - RADIUS` reaches the surface, so the feet touch down without sinking at any
+canvas size. Passing `flip: -1` draws it into a y-up frame.
 
 The replay is upstream's `replay.html`; its banner reads upstream's `mode`
 (`baseline`/`laya`/`assisted`), so the JSON provenance keeps that field and adds
