@@ -91,10 +91,45 @@ class Dynamics {
   }
 }
 
+// ---------- shared lander art ----------
+// One chamfered-box lander, shared byte for byte with lunar-mpc and lunar-laya.
+// Coordinates are in units of RADIUS/8 with y pointing down, so the footpads sit
+// exactly RADIUS below the hull centre and rest on the surface at touchdown.
+const HULL = [[-6, -7], [-4, -9], [4, -9], [6, -7], [6, 1], [4, 3], [-4, 3], [-6, 1]];
+const NOZZLE = [[-1.7, 3], [1.7, 3], [1.1, 5.2], [-1.1, 5.2]];
+const STRUTS = [[-4, 3, -7.2, 8], [4, 3, 7.2, 8]];
+const PADS_ART = [[-8.6, 8, -5.8, 8], [5.8, 8, 8.6, 8]];
+
+// Draws into the caller's frame: translate to the hull centre and rotate first.
+// `u` is one eighth of RADIUS in canvas pixels; `flip` is -1 for a y-up frame.
+function drawLander(ctx, u, { body = "#d6e6de", trim = "#f0f5eb", glass = "#3a6265", flip = 1 } = {}) {
+  const path = points => {
+    ctx.beginPath();
+    points.forEach(([x, y], i) => i ? ctx.lineTo(x * u, y * u * flip) : ctx.moveTo(x * u, y * u * flip));
+    ctx.closePath();
+  };
+  ctx.lineJoin = "miter";
+  path(NOZZLE); ctx.fillStyle = glass; ctx.fill();
+  path(HULL); ctx.fillStyle = body; ctx.fill();
+  ctx.strokeStyle = trim; ctx.lineWidth = Math.max(0.8, 0.35 * u); ctx.stroke();
+  ctx.fillStyle = glass; ctx.fillRect(-2.2 * u, (flip > 0 ? -6.4 : 2) * u, 4.4 * u, 4.4 * u);
+  ctx.strokeStyle = trim; ctx.lineWidth = Math.max(0.7, 0.25 * u);
+  ctx.beginPath();
+  ctx.moveTo(-6 * u, -1.2 * u * flip); ctx.lineTo(6 * u, -1.2 * u * flip);
+  for (const [x0, y0, x1, y1] of STRUTS) { ctx.moveTo(x0 * u, y0 * u * flip); ctx.lineTo(x1 * u, y1 * u * flip); }
+  ctx.stroke();
+  // Footpads carry the weight, so they read heavier than the struts.
+  ctx.lineWidth = Math.max(1.2, 0.5 * u); ctx.lineCap = 'butt';
+  ctx.beginPath();
+  for (const [x0, y0, x1, y1] of PADS_ART) { ctx.moveTo(x0 * u, y0 * u * flip); ctx.lineTo(x1 * u, y1 * u * flip); }
+  ctx.stroke();
+}
+
 const CRASH = 1000;
 class AdaptiveMPC {
-  constructor({ horizon = 15, beam = 32, adaptive = true, forgetting = 0.97 } = {}) {
-    this.horizon = horizon; this.beam = beam; this.adaptive = adaptive; this.model = new Dynamics(forgetting);
+  constructor({ horizon = 15, beam = 32, adaptive = true, forgetting = 0.97, switchCost = 8 } = {}) {
+    this.horizon = horizon; this.beam = beam; this.adaptive = adaptive; this.switchCost = switchCost;
+    this.model = new Dynamics(forgetting);
   }
   observe(before, command, after) { this.model.observe(before, command, after, this.adaptive); }
   // Returns {done, crashed} after advancing v in place; safe touchdown absorbs at zero cost.
@@ -108,7 +143,8 @@ class AdaptiveMPC {
     const out = x < RADIUS || x > 1000 - RADIUS || y > 750;
     return { done: contact || out, crashed: (contact && !safe) || out };
   }
-  cost(v, c, pad) {
+  // `previous` is the command index this candidate came from, or -1 with no history.
+  cost(v, c, pad, previous) {
     const [x, y, vx, vy, angle] = v, px = x - (pad[0] + pad[1]) / 2;
     const altitude = Math.max(0, y - pad[2] - RADIUS);
     const vxRef = clip(-0.15 * px, -10, 10), angleRef = clip(12 * (vxRef - vx), -30, 30);
@@ -118,20 +154,24 @@ class AdaptiveMPC {
     const upward = Math.max(0.2, 0.7 * this.model.thrust * Math.cos(angle * Math.PI / 180) - GRAVITY);
     vyRef = Math.max(vyRef, -Math.sqrt(2 * upward * Math.max(0.05, altitude)));
     const clearance = y - RADIUS - surface(x);
+    // Both differences are normalized to [0, 1] so a single knob tunes them.
+    const change = previous < 0 ? 0 : 0.5 * Math.abs(COMMANDS[c].turn - COMMANDS[previous].turn)
+      + Math.abs(COMMANDS[c].throttle - COMMANDS[previous].throttle);
     return 0.005 * px * px + 0.4 * (vx - vxRef) ** 2 + 2 * (vy - vyRef) ** 2 + 0.02 * (angle - angleRef) ** 2
-      + 0.05 * COMMANDS[c].throttle + 0.05 * offPad * Math.max(0, 40 - clearance) ** 2;
+      + 0.05 * COMMANDS[c].throttle + 0.05 * offPad * Math.max(0, 40 - clearance) ** 2 + this.switchCost * change;
   }
-  act(s, target) {
+  // `previous` is the command actually flown last stage; null means no history yet.
+  act(s, target, previous = null) {
     const begin = (typeof performance !== "undefined" ? performance : Date).now();
     const pad = PADS[target], start = [s.x, s.y, s.vx, s.vy, s.angle, s.fuel];
-    let beam = [{ v: start, done: false, cost: 0, path: [] }];
+    let beam = [{ v: start, done: false, cost: 0, path: [], prior: previous === null ? -1 : previous }];
     for (let stage = 0; stage < this.horizon; stage++) {
       const next = [];
       for (const cand of beam) for (let c = 0; c < 9; c++) {
         const v = cand.v.slice();
         const { done, crashed } = this.advance(v, c, cand.done, pad);
-        const stageCost = (done ? 0 : this.cost(v, c, pad)) * STAGE + (crashed ? CRASH : 0);
-        next.push({ v, done, cost: cand.cost + stageCost, path: cand.path.concat(c) });
+        const stageCost = (done ? 0 : this.cost(v, c, pad, cand.prior)) * STAGE + (crashed ? CRASH : 0);
+        next.push({ v, done, cost: cand.cost + stageCost, path: cand.path.concat(c), prior: c });
       }
       next.sort((a, b) => a.cost - b.cost);
       beam = next.slice(0, this.beam);
@@ -146,5 +186,5 @@ class AdaptiveMPC {
   }
 }
 
-const Lander = { GRAVITY, THRUST, RADIUS, TERRAIN, PADS, COMMANDS, ground, surface, step, wrap, Dynamics, AdaptiveMPC };
+const Lander = { GRAVITY, THRUST, RADIUS, TERRAIN, PADS, COMMANDS, ground, surface, step, wrap, drawLander, Dynamics, AdaptiveMPC };
 if (typeof module !== "undefined") module.exports = Lander; else globalThis.Lander = Lander;

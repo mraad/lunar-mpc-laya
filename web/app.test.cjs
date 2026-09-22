@@ -8,8 +8,10 @@ const L = require("./lander.js");
 
 for (const c of require("./parity.json")) {
   const s = { ...c.start }, mpc = new L.AdaptiveMPC();
+  let previous = null;
   for (const expected of c.commands) {
-    const plan = mpc.act(s, c.target).plan;
+    const plan = mpc.act(s, c.target, previous).plan;
+    previous = plan[0];
     assert.equal(plan[0], expected, `seed ${c.seed} pad ${c.target}: JS command differs from Python at t=${s.time}`);
     const before = { ...s }, command = L.COMMANDS[expected];
     L.step(s, command, before.time >= 10 ? c.thrust_scale : 1);

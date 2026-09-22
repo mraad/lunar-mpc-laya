@@ -86,14 +86,21 @@ def render(record, episode, index):
     # surface when y - RADIUS == ground. Feet are drawn exactly RADIUS below the
     # centre in map units (vertical scale .43 px/m) so they touch, never sink.
     foot = RADIUS * .43
-    hull = [(0, -foot * 1.1), (foot * .8, -foot * .3), (foot * .7, foot * .2), (-foot * .7, foot * .2), (-foot * .8, -foot * .3)]
-    scale = 3.2  # visual size; legs still end at exactly `foot` below centre
-    draw.polygon(ship([(px * scale, py * scale) for px, py in hull]), fill=PANEL, outline=RED if crashed else TEXT)
-    draw.line(ship([(-foot * .7 * scale, foot * .2 * scale), (-foot * 1.1 * scale, foot)]), fill=TEXT)
-    draw.line(ship([(foot * .7 * scale, foot * .2 * scale), (foot * 1.1 * scale, foot)]), fill=TEXT)
+    # Same chamfered-box lander the web pages draw, in units of one eighth of the
+    # hull radius; the hull is enlarged 3.2x for legibility while the footpads stay
+    # at exactly `foot` below the centre.
+    u = foot / 8 * 3.2
+    hull = [(-6, -7), (-4, -9), (4, -9), (6, -7), (6, 1), (4, 3), (-4, 3), (-6, 1)]
     if not terminal and d["executed"]["throttle"] > 0 and state["fuel"] > 0:
-        base = foot * .2 * scale
-        draw.polygon(ship([(-3, base), (0, base + 4 + 14 * d["executed"]["throttle"]), (3, base)]), fill=AMBER)
+        reach = (6 + 11 * d["executed"]["throttle"]) * u
+        draw.polygon(ship([(-1.5 * u, 5 * u), (0, 5 * u + reach), (1.5 * u, 5 * u)]), fill=AMBER)
+    draw.polygon(ship([(-1.7 * u, 3 * u), (1.7 * u, 3 * u), (1.1 * u, 5.2 * u), (-1.1 * u, 5.2 * u)]), fill=GRID)
+    draw.polygon(ship([(px * u, py * u) for px, py in hull]), fill=PANEL, outline=RED if crashed else TEXT)
+    draw.line(ship([(-6 * u, -1.2 * u), (6 * u, -1.2 * u)]), fill=RED if crashed else TEXT)
+    draw.polygon(ship([(-2.2 * u, -6.4 * u), (2.2 * u, -6.4 * u), (2.2 * u, -2 * u), (-2.2 * u, -2 * u)]), fill=GRID)
+    for sign in (-1, 1):
+        draw.line(ship([(sign * 4 * u, 3 * u), (sign * 7.2 * u, foot)]), fill=TEXT)
+        draw.line(ship([(sign * 5.8 * u, foot), (sign * 8.6 * u, foot)]), fill=TEXT, width=2)
     status = state["status"].upper().replace("_", " ") if terminal else "FLYING"
     text(38, 516, f"{status}   T+ {state['time']:5.1f} s   tilt {state['angle']:+.0f}°", 12, RED if crashed else MINT)
 

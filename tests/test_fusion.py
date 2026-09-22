@@ -84,6 +84,27 @@ class Fusion(unittest.TestCase):
         self.assertAlmostEqual(first["summary"]["model"]["thrust"], 2., places=3)
         self.assertEqual(second["frames"][0]["decision"]["model"], {"thrust": 5., "updates": 0})
 
+    def test_command_history_resets_between_episodes(self):
+        """The switching penalty is online state, so it must not cross episodes."""
+        pilot = MPCPilot("mpc")
+        run_episode(pilot, 3000, 1, 900, thrust_scale=.4, fault_at=10.)
+        self.assertIsNotNone(pilot.previous)
+        second = run_episode(pilot, 3001, 1, 900)
+        fresh = run_episode(MPCPilot("mpc"), 3001, 1, 900)
+        self.assertEqual(second["frames"][0]["decision"]["executed"],
+                         fresh["frames"][0]["decision"]["executed"])
+
+    def test_switch_penalty_holds_the_command(self):
+        """Without it the beam search re-picks freely every 0.2 s and the flight is jerky."""
+        def switch_rate(switch):
+            frames = run_episode(MPCPilot("mpc", mpc=AdaptiveMPC(MPCConfig(switch=switch))),
+                                 3000, 1, 900)["frames"]
+            flown = [f["decision"]["executed"] for f in frames]
+            return sum(a != b for a, b in zip(flown, flown[1:])) / (len(flown) - 1)
+
+        self.assertGreater(switch_rate(0.), .6)
+        self.assertLess(switch_rate(MPCConfig().switch), .4)
+
     def test_fault_restores_thrust(self):
         run_episode(MPCPilot("mpc"), 0, 1, 20, thrust_scale=.5, fault_at=0.)
         self.assertEqual(game_module.THRUST, 5.)

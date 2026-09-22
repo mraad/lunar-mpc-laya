@@ -59,13 +59,13 @@
     "outcomes": {
       "landed": 30
     },
-    "decisions": 8815,
+    "decisions": 8796,
     "agreements": 0,
     "laya_decisions": 0,
     "interventions": 0,
-    "fuel_mean": 85.71,
-    "latency_p50_ms": 3.821,
-    "solve_p50_ms": 3.814,
+    "fuel_mean": 86.29,
+    "latency_p50_ms": 4.01,
+    "solve_p50_ms": 4.004,
     "thrust_estimate_final": [
       5.0,
       5.0,
@@ -80,13 +80,13 @@
     "outcomes": {
       "landed": 30
     },
-    "decisions": 8884,
+    "decisions": 8532,
     "agreements": 0,
     "laya_decisions": 0,
     "interventions": 0,
-    "fuel_mean": 80.56,
-    "latency_p50_ms": 3.787,
-    "solve_p50_ms": 3.781,
+    "fuel_mean": 81.82,
+    "latency_p50_ms": 3.96,
+    "solve_p50_ms": 3.954,
     "thrust_estimate_final": [
       3.5,
       3.5,
@@ -101,13 +101,13 @@
     "outcomes": {
       "landed": 30
     },
-    "decisions": 10327,
+    "decisions": 9736,
     "agreements": 0,
     "laya_decisions": 0,
     "interventions": 0,
-    "fuel_mean": 62.59,
-    "latency_p50_ms": 3.782,
-    "solve_p50_ms": 3.777,
+    "fuel_mean": 65.55,
+    "latency_p50_ms": 3.941,
+    "solve_p50_ms": 3.935,
     "thrust_estimate_final": [
       2.0,
       2.0,
@@ -122,13 +122,13 @@
     "outcomes": {
       "landed": 30
     },
-    "decisions": 8815,
+    "decisions": 8796,
     "agreements": 0,
     "laya_decisions": 0,
     "interventions": 0,
-    "fuel_mean": 85.71,
-    "latency_p50_ms": 3.767,
-    "solve_p50_ms": 3.761,
+    "fuel_mean": 86.29,
+    "latency_p50_ms": 3.994,
+    "solve_p50_ms": 3.987,
     "thrust_estimate_final": [
       5.0,
       5.0,
@@ -143,13 +143,13 @@
     "outcomes": {
       "landed": 30
     },
-    "decisions": 8429,
+    "decisions": 7157,
     "agreements": 0,
     "laya_decisions": 0,
     "interventions": 0,
-    "fuel_mean": 81.58,
-    "latency_p50_ms": 3.778,
-    "solve_p50_ms": 3.773,
+    "fuel_mean": 84.7,
+    "latency_p50_ms": 4.01,
+    "solve_p50_ms": 4.004,
     "thrust_estimate_final": [
       5.0,
       5.0,
@@ -164,13 +164,13 @@
     "outcomes": {
       "crashed": 30
     },
-    "decisions": 5373,
+    "decisions": 5147,
     "agreements": 0,
     "laya_decisions": 0,
     "interventions": 0,
-    "fuel_mean": 83.22,
-    "latency_p50_ms": 3.768,
-    "solve_p50_ms": 3.763,
+    "fuel_mean": 84.49,
+    "latency_p50_ms": 4.012,
+    "solve_p50_ms": 4.007,
     "thrust_estimate_final": [
       5.0,
       5.0,
@@ -190,7 +190,7 @@
     "laya_decisions": 11147,
     "interventions": 0,
     "fuel_mean": 82.17,
-    "latency_p50_ms": 10.333,
+    "latency_p50_ms": 10.446,
     "solve_p50_ms": null,
     "thrust_estimate_final": null
   },
@@ -208,7 +208,7 @@
     "laya_decisions": 6266,
     "interventions": 0,
     "fuel_mean": 86.52,
-    "latency_p50_ms": 14.638,
+    "latency_p50_ms": 11.499,
     "solve_p50_ms": null,
     "thrust_estimate_final": null
   },
@@ -225,7 +225,7 @@
     "laya_decisions": 4787,
     "interventions": 0,
     "fuel_mean": 86.46,
-    "latency_p50_ms": 11.006,
+    "latency_p50_ms": 10.575,
     "solve_p50_ms": null,
     "thrust_estimate_final": null
   },
@@ -237,13 +237,13 @@
     "outcomes": {
       "landed": 30
     },
-    "decisions": 8815,
-    "agreements": 8815,
-    "laya_decisions": 8815,
+    "decisions": 8796,
+    "agreements": 8796,
+    "laya_decisions": 8796,
     "interventions": 0,
-    "fuel_mean": 85.71,
-    "latency_p50_ms": 14.218,
-    "solve_p50_ms": 3.83,
+    "fuel_mean": 86.29,
+    "latency_p50_ms": 14.446,
+    "solve_p50_ms": 3.993,
     "thrust_estimate_final": [
       5.0,
       5.0,
@@ -258,13 +258,13 @@
     "outcomes": {
       "landed": 30
     },
-    "decisions": 8884,
-    "agreements": 8884,
-    "laya_decisions": 8884,
+    "decisions": 8532,
+    "agreements": 8532,
+    "laya_decisions": 8532,
     "interventions": 0,
-    "fuel_mean": 80.56,
-    "latency_p50_ms": 14.277,
-    "solve_p50_ms": 3.916,
+    "fuel_mean": 81.82,
+    "latency_p50_ms": 14.481,
+    "solve_p50_ms": 4.005,
     "thrust_estimate_final": [
       3.5,
       3.5,
@@ -279,13 +279,13 @@
     "outcomes": {
       "landed": 30
     },
-    "decisions": 10327,
-    "agreements": 10327,
-    "laya_decisions": 10327,
+    "decisions": 9736,
+    "agreements": 9736,
+    "laya_decisions": 9736,
     "interventions": 0,
-    "fuel_mean": 62.59,
-    "latency_p50_ms": 14.345,
-    "solve_p50_ms": 3.937,
+    "fuel_mean": 65.55,
+    "latency_p50_ms": 14.483,
+    "solve_p50_ms": 4.015,
     "thrust_estimate_final": [
       2.0,
       2.0,
@@ -300,13 +300,13 @@
     "outcomes": {
       "landed": 30
     },
-    "decisions": 8815,
-    "agreements": 8815,
-    "laya_decisions": 8815,
+    "decisions": 8796,
+    "agreements": 8796,
+    "laya_decisions": 8796,
     "interventions": 0,
-    "fuel_mean": 85.71,
-    "latency_p50_ms": 14.33,
-    "solve_p50_ms": 3.968,
+    "fuel_mean": 86.29,
+    "latency_p50_ms": 14.45,
+    "solve_p50_ms": 4.016,
     "thrust_estimate_final": [
       5.0,
       5.0,
@@ -321,13 +321,13 @@
     "outcomes": {
       "landed": 30
     },
-    "decisions": 8884,
-    "agreements": 8884,
-    "laya_decisions": 8884,
+    "decisions": 8532,
+    "agreements": 8532,
+    "laya_decisions": 8532,
     "interventions": 0,
-    "fuel_mean": 80.56,
-    "latency_p50_ms": 14.333,
-    "solve_p50_ms": 3.958,
+    "fuel_mean": 81.82,
+    "latency_p50_ms": 14.429,
+    "solve_p50_ms": 4.012,
     "thrust_estimate_final": [
       3.5,
       3.5,
@@ -342,13 +342,13 @@
     "outcomes": {
       "landed": 30
     },
-    "decisions": 10327,
-    "agreements": 10327,
-    "laya_decisions": 10327,
+    "decisions": 9736,
+    "agreements": 9736,
+    "laya_decisions": 9736,
     "interventions": 0,
-    "fuel_mean": 62.59,
-    "latency_p50_ms": 14.189,
-    "solve_p50_ms": 3.875,
+    "fuel_mean": 65.55,
+    "latency_p50_ms": 14.539,
+    "solve_p50_ms": 4.042,
     "thrust_estimate_final": [
       2.0,
       2.0,
@@ -368,8 +368,8 @@
     "laya_decisions": 2864,
     "interventions": 0,
     "fuel_mean": 90.86,
-    "latency_p50_ms": 15.23,
-    "solve_p50_ms": 3.88,
+    "latency_p50_ms": 15.609,
+    "solve_p50_ms": 4.083,
     "thrust_estimate_final": [
       5.0,
       5.0,
@@ -382,16 +382,16 @@
     "flights": 30,
     "landed": 0,
     "outcomes": {
-      "out_of_bounds": 22,
-      "crashed": 8
+      "out_of_bounds": 21,
+      "crashed": 9
     },
-    "decisions": 5276,
-    "agreements": 233,
-    "laya_decisions": 5276,
+    "decisions": 5332,
+    "agreements": 332,
+    "laya_decisions": 5332,
     "interventions": 0,
-    "fuel_mean": 90.15,
-    "latency_p50_ms": 15.038,
-    "solve_p50_ms": 3.865,
+    "fuel_mean": 90.09,
+    "latency_p50_ms": 15.425,
+    "solve_p50_ms": 4.096,
     "thrust_estimate_final": [
       4.061,
       4.02,
@@ -407,13 +407,13 @@
       "out_of_bounds": 20,
       "crashed": 10
     },
-    "decisions": 5271,
-    "agreements": 212,
-    "laya_decisions": 5271,
+    "decisions": 5428,
+    "agreements": 253,
+    "laya_decisions": 5428,
     "interventions": 0,
-    "fuel_mean": 89.53,
-    "latency_p50_ms": 14.646,
-    "solve_p50_ms": 3.897,
+    "fuel_mean": 88.43,
+    "latency_p50_ms": 15.264,
+    "solve_p50_ms": 4.075,
     "thrust_estimate_final": [
       4.008,
       3.76,

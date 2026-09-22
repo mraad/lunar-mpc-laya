@@ -116,11 +116,12 @@ Full tables: [results.md](results.md).
 ## 5. Distillation: the shield at work
 
 Step 1 of the original plan is done; see [distillation.md](distillation.md).
-Laya retrained on MPC labels with a telemetry-only prompt reaches 80%
-per-question validation accuracy, cannot land a single unshielded flight
-(errors compound once it leaves the teacher's trajectory), and lands 90/90
-with the shield while keeping about two thirds of its own choices. That is the
-first configuration where the fused pilot is neither controller alone.
+Laya retrained on MPC labels with a telemetry-only prompt reaches 90%
+per-question validation accuracy, lands 1 of 90 unshielded flights (errors
+compound once it leaves the teacher's trajectory), and lands 90/90 with the
+shield while keeping more than four fifths of its own choices. That is the
+first configuration where the fused pilot is neither controller alone, and the
+accuracy that did nothing for the raw pilot shows up as less shield work.
 
 ## 6. Where it goes next
 

@@ -4,8 +4,8 @@
 
 One actual recorded flight: seed 3000, central pad, the **distilled Laya**
 checkpoint deciding from telemetry alone with the **adaptive MPC shield**, and
-a main-engine fault to ×0.4 thrust at 10 s. The flight lands at 69.6 s after
-348 decisions; the shield replaced 109 of Laya's proposals (31%). The engine
+a main-engine fault to ×0.4 thrust at 10 s. The flight lands at 66.2 s after
+331 decisions; the shield replaced 39 of Laya's proposals (12%). The engine
 estimate falls from 100% to 40% within a few seconds of the fault and the
 descent slows accordingly. The panel shows Laya's option probabilities, MPC's
 request, Laya's proposal, the executed command, and whether the shield fired.
@@ -29,4 +29,4 @@ The renderer needs only Pillow and the JSON. Pass another recording (any
 The amber dashed line is MPC's plan at that decision; the solid trail is the
 executed path. The GIF is 1000 × 620, 64 colours per frame, 10 fps, at 4×
 speed one frame per 0.4 simulated seconds, first frame held 0.8 s and the last
-2.5 s. This export has 175 frames and a 20.6 s loop, about 2.2 MB.
+2.5 s. This export has 167 frames and a 19.8 s loop, about 1.8 MB.

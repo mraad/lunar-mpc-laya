@@ -38,9 +38,10 @@ secretly loses more than half its power, and the pilot is not told.
 3. **The trainee learns from the engineer, then flies with a safety net.** A
    new Laya was trained on thousands of MPC's decisions, with the hints removed
    from the sentence, so it must decide on its own. Alone, it crashes every
-   flight: one small mistake leads to an unfamiliar situation, then another
-   mistake, and so on. With the engineer's veto on, it lands every flight, and
-   about two thirds of the moves that fly the ship are Laya's own.
+   flight but one: one small mistake leads to an unfamiliar situation, then
+   another mistake, and so on. With the engineer's veto on, it lands every
+   flight, and more than four fifths of the moves that fly the ship are Laya's
+   own.
 
 **Why bother, if the engineer alone can land?** The engineer can only do what
 its rules say. It cannot be taught new preferences from examples, cannot take
@@ -75,8 +76,8 @@ NumPy beam search over the nine discrete commands, ported from
    search; it is replaced only when its best rollout costs more than MPC's own
    plan by a margin.
 3. **Teacher**: a second checkpoint was fine-tuned on MPC labels with a
-   telemetry-only prompt. Raw it lands 0/90; shielded 90/90 with about a third
-   of proposals overridden.
+   telemetry-only prompt. Raw it lands 1/90; shielded 90/90 with 12-17% of
+   proposals overridden.
 
 A browser page runs the MPC live (click anywhere in the sky, pick a pad, add a
 fault, launch). With the local server it also flies both Laya checkpoints and
@@ -86,7 +87,7 @@ replays every recorded decision with the model's probabilities.
 |---|---|
 | [How MPC and Laya combine](docs/fusion.md) | What each side contributes, the three couplings, why the combination is stronger than either, and what comes next |
 | [Measured results](docs/results.md) | Landings, request following, shield activity and latency for every pilot and fault scenario, with reproduction commands |
-| [Distillation](docs/distillation.md) | Retraining Laya on MPC labels with a telemetry-only prompt: raw 0/90, shielded 90/90 with Laya's choice kept two thirds of the time |
+| [Distillation](docs/distillation.md) | Retraining Laya on MPC labels with a telemetry-only prompt: raw 1/90, shielded 90/90 with Laya's choice kept more than four fifths of the time |
 | [Landing lab](web/README.md) | The browser page: live MPC, live Laya pilots through the local server, recorded flights |
 | [Animated flight](docs/media.md) | The GIF above: what it shows and how to regenerate it |
 
@@ -167,6 +168,19 @@ reference capped by the braking distance the estimated thrust allows (0.7
 design margin, as in lunar-mpc), a hold at 120 m above the pad while off it,
 plus terrain clearance while off the pad and a small throttle cost.
 
+One more term keeps the flight smooth. A beam search that re-picks freely every
+0.2 s will take a different command on most decisions even when the difference
+barely matters, and the tank then chatters between throttle settings while the
+attitude jets flip sign. `MPCConfig.switch` (default 8) charges each candidate
+for changing command, normalized so one knob covers both axes: half the change
+in turn plus the change in throttle, each in [0, 1]. The command actually flown
+last stage is what the first stage is charged against, so it is per-flight
+online state and `MPCPilot.reset` clears it with the thrust estimate. Measured
+over seeds 3000-3009 on all three pads, it cuts the command-change rate from
+77.7% to 20.6% of decisions and the stage-to-stage tilt jerk from 5.37° to
+1.69° RMS, with all 30 flights still landing under every fault level and fuel
+use unchanged.
+
 After each executed command `Dynamics.observe` compares the measured velocity
 change with the prediction and updates the thrust gain by scalar recursive
 least squares (forgetting 0.97, clipped to [1, 10]). Gravity and turn rate are
@@ -201,8 +215,8 @@ shielded too. The shield can only be as good as MPC's own plan.
 The original checkpoint receives requested labels in every prompt, so those
 Laya results demonstrate request following, not independent piloting, and the
 shield never fired. The distilled checkpoint ([docs/distillation.md](docs/distillation.md))
-decides from telemetry alone: it cannot land unshielded (0/90) and lands every
-flight shielded (90/90) with about a third of its proposals overridden. Appending the engine estimate to the prompt broke request following
+decides from telemetry alone: it cannot land unshielded (1/90) and lands every
+flight shielded (90/90) with 12-17% of its proposals overridden. Appending the engine estimate to the prompt broke request following
 completely, so that flag is a negative result, not a feature. The fault is a single step change in main-engine
 thrust; sensor noise, delays and other disturbances are untested.
 
