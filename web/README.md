@@ -85,3 +85,7 @@ at 5 fps. `pose()` mixes the state a stage ended in back into the one it started
 from and the canvas redraws every animation frame. The drawn lander is one stage
 behind the telemetry panel, which is not visible at 0.2 s, and the panel itself
 still shows exact decision states.
+
+The stage that ends in touchdown is interpolated like the rest, so the final
+approach does not snap; `app.js` and the `terminal blend` assertion in
+`app.test.cjs` carry the detail.

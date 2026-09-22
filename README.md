@@ -124,7 +124,7 @@ uv run lunar-mpc-laya --pilot mpc --episodes 10 --seed 3000 --thrust-scale 0.4 \
   --out dist/mpc-fault.json --replay dist/mpc-fault.html
 open dist/mpc-fault.html                  # macOS; upstream's standalone replay
 
-uv sync --extra mlx                       # adds laya-mlx and MLX
+uv sync --extra mlx                       # adds laya-mlx and MLX; never resync mid-batch
 HF_HUB_OFFLINE=1 uv run lunar-mpc-laya --pilot mpc-assisted \
   --model ../lunar-laya/models/lunar-laya-supervised-mlx \
   --episodes 3 --seed 3000 --thrust-scale 0.4 \
@@ -219,8 +219,14 @@ decision record keeps upstream's keys and adds `plan`, `prediction`,
 ```bash
 uv run python -m unittest discover -s tests -v      # controller, shield, fault harness, server
 node --check web/app.js && node web/app.test.cjs   # JS parity with Python, page behaviour
-uv run python scripts/parity.py            # after any controller change, then rerun the Node check
+uv run python scripts/parity.py            # after a controller change; a stale fixture proves the old controller
 ```
+
+Tune a cost weight against every scenario, not the convenient one:
+`scripts/evaluate.py` runs nominal, ×0.7 and ×0.4 together for that reason, and
+[results.md](docs/results.md) records both what the switching weight cost in the
+sibling [lunar-mpc](https://github.com/mraad/lunar-mpc) and which seeds it was
+tuned on.
 
 ## Limits
 

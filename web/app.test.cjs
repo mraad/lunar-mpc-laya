@@ -115,6 +115,11 @@ async function main() {
   vm.runInContext("tick(10000); tick(10100)", context);
   assert.equal($("rec-status").textContent, "LANDED");
   assert.equal($("rec-agreements").textContent, "2 / 2");
-  console.log("page: browser MPC, fault toggle, live server pilot, recorded playback: passed");
+  // Regression: pose() returned the terminal state for every blend, so the final approach snapped.
+  const pose = vm.runInContext("pose", context);
+  const mid = pose({ x: 100, y: 50, angle: -4, status: "flying" }, { x: 110, y: 30, angle: 4, status: "landed" }, 0.5);
+  assert.deepEqual([mid.x, mid.y, mid.angle, mid.status], [105, 40, 0, "flying"], "terminal stage must not snap");
+
+  console.log("page: browser MPC, fault toggle, live server pilot, recorded playback, terminal blend: passed");
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
