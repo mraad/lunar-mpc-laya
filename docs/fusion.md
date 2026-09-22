@@ -146,7 +146,59 @@ shield while keeping more than four fifths of its own choices. That is the
 first configuration where the fused pilot is neither controller alone, and the
 accuracy that did nothing for the raw pilot shows up as less shield work.
 
-## 7. Where it goes next
+## 7. Where the proposer could come from
+
+Laya is used here through a narrow interface: a block of state, a set of typed
+questions, and a probability distribution per question. `Pilot` calls
+`agent.predict(prompt, QUESTIONS)` and nothing below it knows what produced the
+answer, so any component with that shape can take the slot.
+
+A category of model built for exactly that shape has started to appear,
+marketed as "decision models" rather than language models: state in, typed
+probabilistic decisions out, no text generated and nothing to parse. TypeSafe
+AI's Jev, in limited early access since 15 September 2026, is the prominent
+example, and its choice questions return a probability distribution over
+options plus a confidence score, which is the same contract `QUESTIONS` already
+describes. Its speed, price and "cannot hallucinate" claims are the vendor's
+and are not evaluated here.
+
+Nothing in this repository has been measured against such a model. What this
+repository *can* say is which of the interesting questions its own results
+already answer, because they are properties of the architecture rather than of
+the proposer:
+
+- **A better proposer is not a pilot.** Retraining took per-question agreement
+  with MPC from 80% to 90% and moved unshielded landings from 0/90 to 1/90.
+  Errors compound as soon as the flight leaves the teacher's trajectory; that
+  is a property of learning from demonstrations without a corrective signal,
+  and a faster or cheaper proposer does not touch it.
+- **Well-typed is not feasible.** Every proposal Laya makes is already
+  well-formed — `left`/`hold`/`right` is always in range — and 12-17% of them
+  were still overridden because rolling them forward cost more than MPC's own
+  plan. A type system rules out unparseable answers, not physically bad ones.
+  That gap is the shield's entire job.
+- **Opacity has a runtime answer.** The common objection to a model that
+  returns numbers without reasoning is that its bias stays hidden. The shield
+  does not ask the proposer to justify itself: it simulates the proposal under
+  the learned model and compares. Verification at decision time is cheaper to
+  trust than an explanation.
+- **Calibration is the part that would matter.** Item 4 below is blocked on
+  exactly the property these models claim to optimize for. Confidence that
+  tracks outcomes would let the shield margin move with it instead of sitting
+  at a constant.
+
+Two frictions to settle before assuming a fit. The prompt here is almost
+entirely numeric, and weakness on numbers is a reported limitation of this
+model class; interface fit and content fit are separate questions. And a hosted
+API changes the latency story and drops the offline, on-device property that
+`HF_HUB_OFFLINE=1` and ~14 ms local decisions currently provide.
+
+The test is cheap and is the only thing that would settle it: write the adapter
+behind `agent.predict`, then fly the same seeds 3000-3009 on all three pads
+under the same shield and put the result beside the table in
+[distillation.md](distillation.md).
+
+## 8. Where it goes next
 
 1. **DAgger.** Roll out the shielded pilot, relabel visited states with MPC,
    retrain; the student learns near its own mistakes.
@@ -157,7 +209,8 @@ accuracy that did nothing for the raw pilot shows up as less shield work.
    whether to abort, how aggressive to be. Typed questions fit those better
    than a 5 Hz throttle choice, and MPC executes whatever it decides.
 4. **Calibration.** Fit temperatures on held-out MPC labels so confidence can
-   set the shield margin instead of a fixed number.
+   set the shield margin instead of a fixed number, or take the calibration
+   from a proposer that optimizes for it (section 7).
 5. **Re-train with the estimate in the prompt**, so coupling 3 can be tested.
 
 None of this is flight software. The search is incomplete, the cost is
