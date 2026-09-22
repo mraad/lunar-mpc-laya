@@ -152,7 +152,10 @@ HF_HUB_OFFLINE=1 uv run python scripts/evaluate.py mpc pd-baseline   # subset
 ```
 
 The script skips rows whose recording already exists under `dist/eval/` and
-rewrites `docs/results.json` from whatever is present. Single rows:
+rewrites `docs/results.json` from whatever is present. Each recording carries the
+controller it was made with, and resuming stops with an error if that differs
+from the current one, so a cost weight edited between runs cannot leave the
+directory holding two controllers summarized as one measurement. Single rows:
 
 ```bash
 uv run lunar-mpc-laya --pilot mpc --fixed-model --thrust-scale 0.4 --seed 3000 --episodes 10 --target 1

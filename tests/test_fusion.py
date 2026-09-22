@@ -84,15 +84,22 @@ class Fusion(unittest.TestCase):
         self.assertAlmostEqual(first["summary"]["model"]["thrust"], 2., places=3)
         self.assertEqual(second["frames"][0]["decision"]["model"], {"thrust": 5., "updates": 0})
 
-    def test_command_history_resets_between_episodes(self):
-        """The switching penalty is online state, so it must not cross episodes."""
+    def test_no_per_flight_state_crosses_episodes(self):
+        """After a flight, reset() must leave the pilot identical to a fresh one.
+
+        Comparing the state itself rather than the commands it produces is what
+        makes this general: a field added later whose reset is forgotten fails
+        here, while a behavioural comparison can miss it entirely, because a
+        stale value often converges back within a few decisions.
+        """
         pilot = MPCPilot("mpc")
         run_episode(pilot, 3000, 1, 900, thrust_scale=.4, fault_at=10.)
         self.assertIsNotNone(pilot.previous)
-        second = run_episode(pilot, 3001, 1, 900)
-        fresh = run_episode(MPCPilot("mpc"), 3001, 1, 900)
-        self.assertEqual(second["frames"][0]["decision"]["executed"],
-                         fresh["frames"][0]["decision"]["executed"])
+        self.assertGreater(pilot.mpc.model.updates, 0)
+        pilot.reset()
+        fresh = MPCPilot("mpc")
+        self.assertEqual(pilot.previous, fresh.previous)
+        self.assertEqual(vars(pilot.mpc.model), vars(fresh.mpc.model))
 
     def test_switch_penalty_holds_the_command(self):
         """Without it the beam search re-picks freely every 0.2 s and the flight is jerky."""
