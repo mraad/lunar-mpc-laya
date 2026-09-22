@@ -85,7 +85,7 @@ def run_episode(pilot, seed, target, steps, thrust_scale=1., fault_at=10.):
 def make_pilot(args):
     if args.pilot.startswith("pd-"):
         return PDPilot("laya" if args.pilot == "pd-laya" else "baseline", args.model, args.revision)
-    cfg = MPCConfig(args.horizon, args.beam, not args.fixed_model)
+    cfg = MPCConfig(args.horizon, args.beam, not args.fixed_model, switch=args.switch)
     return MPCPilot(args.pilot, args.model, args.revision, mpc=AdaptiveMPC(cfg),
                     margin=args.margin, prompt_estimate=args.prompt_estimate)
 
@@ -104,6 +104,8 @@ def main(argv=None):
     parser.add_argument("--fixed-model", action="store_true", help="disable MPC parameter learning")
     parser.add_argument("--horizon", type=int, default=15)
     parser.add_argument("--beam", type=int, default=32)
+    parser.add_argument("--switch", type=float, default=MPCConfig.switch,
+                        help="cost of changing command between stages; 0 disables the smoothing")
     parser.add_argument("--margin", type=float, default=0., help="shield cost margin before overriding Laya")
     parser.add_argument("--prompt-estimate", action="store_true", help="append the engine estimate to the prompt")
     parser.add_argument("--out", type=Path, default=Path("dist/run.json"))

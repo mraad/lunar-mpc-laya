@@ -3,7 +3,7 @@ const L = globalThis.Lander;
 const $ = id => document.getElementById(id);
 const FAULT_AT = 10;
 const lab = { canvas: $("canvas"), start: { x: 500, y: 450, vx: 0, vy: -8, angle: 0 }, target: 1, thrustScale: 1, pilot: "mpc",
-  s: null, mpc: null, thrust: L.THRUST, trail: [], plan: null, command: null, decision: null, playing: false, acc: 0, busy: false };
+  s: null, prev: null, mpc: null, thrust: L.THRUST, trail: [], plan: null, command: null, decision: null, playing: false, acc: 0, busy: false, previous: null };
 const rec = { canvas: $("rec-canvas"), runs: [], run: null, episode: null, frame: 0, playing: false, acc: 0, loaded: false };
 lab.ctx = lab.canvas.getContext("2d");
 rec.ctx = rec.canvas.getContext("2d");
@@ -19,6 +19,23 @@ async function api(path, body) {
 }
 
 // ---------- drawing (shared by both tabs) ----------
+// One control stage is 0.2 s, so drawing only on stage boundaries animates at 5 fps.
+// `blend` mixes the pose from the stage that just ended into the one before it, which
+// puts the drawn lander one stage behind the telemetry but moves it every frame.
+function pose(before, after, blend) {
+  if (!before) return after;
+  const t = Math.max(0, Math.min(1, blend));
+  if (t >= 1) return after;
+  // A stage that ends in touchdown is interpolated like any other, or the final
+  // approach - the part worth watching - would snap. The terminal status only
+  // applies once the blend completes, so the hull keeps its flying colour until
+  // it actually arrives.
+  const spin = L.wrap(after.angle - before.angle);
+  return { ...after, status: before.status,
+    x: before.x + (after.x - before.x) * t, y: before.y + (after.y - before.y) * t,
+    angle: L.wrap(before.angle + spin * t) };
+}
+
 function draw(view, s, trail, prediction, target, command, placing) {
   const { canvas, ctx } = view, W = canvas.width, H = canvas.height, k = W / 1100, pad = L.PADS[target];
   const px = x => (50 + x) * k, py = y => H - 38 * k - y * (H - 58 * k) / 750;
@@ -49,14 +66,15 @@ function draw(view, s, trail, prediction, target, command, placing) {
   const x = px(s.x), y = py(s.y);
   ctx.strokeStyle = "#244c46"; ctx.setLineDash([3, 7]); ctx.beginPath(); ctx.moveTo(x, y + 24); ctx.lineTo(x, py(pad[2])); ctx.stroke(); ctx.setLineDash([]);
   ctx.save(); ctx.translate(x, y); ctx.rotate(s.angle * Math.PI / 180);
-  ctx.strokeStyle = s.status === "crashed" || s.status === "out_of_bounds" ? "#e7ac83" : "#d9fff0";
-  // Feet end exactly RADIUS below the hull centre in canvas units, so they touch the surface at touchdown and never sink.
-  const foot = L.RADIUS * (H - 58 * k) / 750, u = foot / 8;
-  ctx.lineWidth = 1.8; ctx.beginPath(); ctx.moveTo(0, -10 * u); ctx.lineTo(7 * u, -4 * u); ctx.lineTo(6 * u, 4 * u); ctx.lineTo(-6 * u, 4 * u); ctx.lineTo(-7 * u, -4 * u); ctx.closePath();
-  ctx.moveTo(-5 * u, 4 * u); ctx.lineTo(-6 * u, foot); ctx.lineTo(-8 * u, foot); ctx.moveTo(5 * u, 4 * u); ctx.lineTo(6 * u, foot); ctx.lineTo(8 * u, foot); ctx.stroke();
+  // Footpads end exactly RADIUS below the hull centre in canvas units, so they touch the surface at touchdown and never sink.
+  const u = L.RADIUS * (H - 58 * k) / 750 / 8;
   if (s.status === "flying" && s.fuel > 0 && command && command.throttle > 0) {
-    ctx.strokeStyle = "#edbf7f"; ctx.beginPath(); ctx.moveTo(-3, 6 * u); ctx.lineTo(0, 6 * u + 4 + 15 * command.throttle); ctx.lineTo(3, 6 * u); ctx.stroke();
+    const reach = (6 + 11 * command.throttle + Math.random()) * u;
+    ctx.beginPath(); ctx.moveTo(-1.5 * u, 5 * u); ctx.lineTo(1.5 * u, 5 * u); ctx.lineTo(0, 5 * u + reach); ctx.closePath();
+    ctx.fillStyle = "#edbf7f"; ctx.fill();
   }
+  const wrecked = s.status === "crashed" || s.status === "out_of_bounds";
+  L.drawLander(ctx, u, wrecked ? { body: "#8a5f4b", trim: "#e7ac83", glass: "#4b2f24" } : { body: "#c8ded4", trim: "#d9fff0", glass: "#24424c" });
   ctx.restore();
   if (placing) { ctx.fillStyle = "#90edd0"; ctx.font = "11px monospace"; ctx.fillText("START · click the sky to move", x + 14, y + 4); }
   ctx.fillStyle = "#829eab"; ctx.font = "10px monospace"; ctx.fillText(view === lab ? "LUNAR SURFACE / LIVE FLIGHT" : "LUNAR SURFACE / RECORDED FLIGHT", 24, H - 12);
@@ -88,6 +106,7 @@ function showAnswers(prefix, d) {
 // ---------- landing lab ----------
 function reset() {
   lab.s = { ...lab.start, fuel: 100, time: 0, status: "flying", score: 0 };
+  lab.prev = null; lab.previous = null;
   lab.mpc = new L.AdaptiveMPC({ adaptive: $("adaptive").checked });
   lab.thrust = L.THRUST; lab.trail = []; lab.plan = null; lab.command = null; lab.decision = null; lab.playing = false; lab.acc = 0;
   $("log").textContent = ""; notice("");
@@ -102,11 +121,12 @@ function finish(s) {
 
 function decide() {
   const s = lab.s, before = { ...s };
-  const result = lab.mpc.act(s, lab.target);
+  const result = lab.mpc.act(s, lab.target, lab.previous);
   const command = L.COMMANDS[result.plan[0]];
   L.step(s, command, before.time >= FAULT_AT ? lab.thrustScale : 1);
   lab.mpc.observe(before, command, s);
   lab.trail.push([before.x, before.y]);
+  lab.prev = before; lab.previous = result.plan[0];
   lab.plan = result; lab.command = command; lab.thrust = lab.mpc.model.thrust;
   if (Math.abs(before.time - FAULT_AT) < 1e-9 && lab.thrustScale < 1) log(`T+10.0 s  engine thrust ×${lab.thrustScale} (controller not told)`);
   if (s.status !== "flying") finish(s);
@@ -115,6 +135,7 @@ function decide() {
 function applyFrames(frames) {
   for (const f of frames) {
     lab.trail.push([f.before.x, f.before.y]);
+    lab.prev = f.before;
     lab.s = { ...f.after }; lab.decision = f.decision; lab.command = f.decision.executed; lab.thrust = f.decision.model.thrust;
     lab.plan = { prediction: f.decision.prediction, cost: f.decision.plan_cost, solveMs: f.decision.solve_ms };
     if (Math.abs(f.before.time - FAULT_AT) < 1e-9 && lab.thrustScale < 1) log(`T+10.0 s  engine thrust ×${lab.thrustScale} (controller not told)`);
@@ -139,7 +160,8 @@ async function launch() {
 
 function renderLab() {
   const s = lab.s, pad = L.PADS[lab.target];
-  draw(lab, s, lab.trail, lab.plan && lab.plan.prediction, lab.target, lab.command, !lab.trail.length);
+  draw(lab, pose(lab.prev, s, lab.playing ? lab.acc / 0.2 : 1), lab.trail,
+       lab.plan && lab.plan.prediction, lab.target, lab.command, !lab.trail.length);
   $("altitude").textContent = `${Math.max(0, s.y - pad[2] - L.RADIUS).toFixed(1)} m`;
   $("vertical").textContent = `${s.vy.toFixed(2)} m/s`;
   $("horizontal").textContent = `${s.vx.toFixed(2)} m/s`;
@@ -224,7 +246,11 @@ function renderRec() {
   if (!e) return;
   const frames = e.frames, end = rec.frame >= frames.length, i = Math.min(rec.frame, frames.length - 1);
   const s = end ? e.final : frames[i].before, d = frames[i].decision;
-  draw(rec, s, frames.slice(0, i).map(f => [f.before.x, f.before.y]), null, e.summary.target, d.executed, false);
+  // Built recordings keep only each frame's `before` state, so the next frame's
+  // `before` (or the episode's final state) is the far end of this control stage.
+  const nxt = i + 1 < frames.length ? frames[i + 1].before : e.final;
+  draw(rec, end ? s : pose(s, nxt, rec.playing ? rec.acc / 0.2 : 0),
+       frames.slice(0, i).map(f => [f.before.x, f.before.y]), null, e.summary.target, d.executed, false);
   $("rec-vertical").textContent = `${s.vy.toFixed(2)} m/s`;
   $("rec-horizontal").textContent = `${s.vx.toFixed(2)} m/s`;
   $("rec-tilt").textContent = `${s.angle.toFixed(1)}°`;
@@ -268,7 +294,8 @@ function tick(now) {
   if (rec.playing && rec.episode) {
     rec.acc += dt * Number($("rec-speed").value);
     const steps = Math.floor(rec.acc / 0.2);
-    if (steps > 0) { rec.acc -= steps * 0.2; rec.frame = Math.min(rec.frame + steps, rec.episode.frames.length); if (rec.frame >= rec.episode.frames.length) rec.playing = false; renderRec(); }
+    if (steps > 0) { rec.acc -= steps * 0.2; rec.frame = Math.min(rec.frame + steps, rec.episode.frames.length); if (rec.frame >= rec.episode.frames.length) rec.playing = false; }
+    renderRec();
   }
   requestAnimationFrame(tick);
 }

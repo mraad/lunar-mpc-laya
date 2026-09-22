@@ -24,6 +24,7 @@ class MPCPilot(Pilot):
         super().__init__(UPSTREAM[mode], model, revision, agent)
         self.mode = mode
         self.mpc = mpc or AdaptiveMPC()
+        self.previous = None
         self.margin, self.prompt_estimate = margin, prompt_estimate
         # Keep upstream's mode so its replay banner stays truthful; name the fusion pilot separately.
         self.provenance.update(pilot=mode, controller={"type": "adaptive-mpc", **vars(self.mpc.cfg),
@@ -32,7 +33,7 @@ class MPCPilot(Pilot):
     def decide(self, game):
         start = perf_counter()
         snapshot = game.snapshot()
-        plan = self.mpc.act(snapshot, game.target)
+        plan = self.mpc.act(snapshot, game.target, previous=self.previous)
         reference = COMMANDS[plan["plan"][0]]
         pad, nxt = PADS[game.target], plan["prediction"][1]
         metrics = {"target_dx": (pad[0] + pad[1]) / 2 - snapshot["x"],
@@ -51,7 +52,8 @@ class MPCPilot(Pilot):
         if self.mode == "mpc-assisted" and proposed != reference:
             # Predictive shield: keep the proposal unless MPC's best continuation
             # after it is worse than its own plan by more than the margin.
-            alternative = self.mpc.act(snapshot, game.target, first=command_index(proposed))["cost"]
+            alternative = self.mpc.act(snapshot, game.target, first=command_index(proposed),
+                                       previous=self.previous)["cost"]
             intervened = alternative > plan["cost"] + self.margin
         executed = reference if intervened else proposed
         return executed, {"requested": {"turn": reference.turn, "throttle": reference.throttle},
@@ -66,7 +68,10 @@ class MPCPilot(Pilot):
 
     def observe(self, before, command, after):
         self.mpc.observe(before, command, after)
+        self.previous = command_index(command)
 
     def reset(self):
-        """Fresh nominal model per episode; estimates never carry between flights."""
+        """Fresh nominal model and no command history per episode; neither carries
+        between flights."""
         self.mpc = AdaptiveMPC(self.mpc.cfg)
+        self.previous = None

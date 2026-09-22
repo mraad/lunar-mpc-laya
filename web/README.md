@@ -48,7 +48,7 @@ make one.
 
 | File | Role |
 |---|---|
-| `lander.js` | Line-for-line port of `lunar_laya.game` and `lunar_mpc_laya.mpc`; loads in the browser and in Node |
+| `lander.js` | Line-for-line port of `lunar_laya.game` and `lunar_mpc_laya.mpc`, plus the shared lander art; loads in the browser and in Node |
 | `app.js` | Tabs, controls, live loop (browser or server), recorded playback, canvas drawing |
 | `index.html`, `styles.css` | Page and styling |
 | `build.py` | Static builder for the recorded tab |
@@ -72,3 +72,16 @@ line says whether Laya matched, deviated and was accepted, or was overridden.
 Browser timings are not the Python timings in `docs/results.md`. Live flights
 run one at a time on the local machine. Some starts are unrecoverable and the
 search has no safety guarantee; a crash is a real controller limitation.
+
+## Drawing
+
+`Lander.drawLander` is one chamfered-box lander shared byte for byte with
+lunar-mpc and lunar-laya. Its coordinates are in units of `RADIUS / 8` with y
+pointing down, so the footpads land exactly one hull radius below the centre
+and rest on the surface at touchdown; `flip: -1` draws it into a y-up frame.
+
+A control stage is 0.2 s, so drawing only when a stage ends animates the flight
+at 5 fps. `pose()` mixes the state a stage ended in back into the one it started
+from and the canvas redraws every animation frame. The drawn lander is one stage
+behind the telemetry panel, which is not visible at 0.2 s, and the panel itself
+still shows exact decision states.

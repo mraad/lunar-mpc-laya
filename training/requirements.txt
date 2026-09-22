@@ -1,4 +1,6 @@
 # Additional CUDA training environment only; not local inference dependencies.
+# 2.12.0 has no wheel for compute capability 12.0 (Blackwell); the measured run
+# used 2.12.1 from the cu129 index. Match the index to the host's cards.
 torch==2.12.0
 transformers==5.8.1
 safetensors==0.7.0

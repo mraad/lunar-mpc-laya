@@ -1,177 +1,269 @@
 {
-  "training": {
-    "host_gpus": "CUDA devices 0-2, NVIDIA RTX PRO 6000 Blackwell Server Edition",
-    "epochs": [
-      {
-        "epoch": 1,
-        "rank0_train_loss": 0.8786701946637593,
-        "validation_accuracy": 0.6635400907715583,
-        "per_question": {
-          "rotation": 0.7425113464447807,
-          "engine": 0.5845688350983359
-        },
-        "elapsed_seconds": 29.509335428941995
-      },
-      {
-        "epoch": 2,
-        "rank0_train_loss": 0.742147640781591,
-        "validation_accuracy": 0.7450832072617246,
-        "per_question": {
-          "rotation": 0.7591527987897125,
-          "engine": 0.7310136157337368
-        },
-        "elapsed_seconds": 59.59793141996488
-      },
-      {
-        "epoch": 3,
-        "rank0_train_loss": 0.6654454566965884,
-        "validation_accuracy": 0.7792738275340393,
-        "per_question": {
-          "rotation": 0.7987897125567323,
-          "engine": 0.7597579425113464
-        },
-        "elapsed_seconds": 93.40920325391926
-      },
-      {
-        "epoch": 4,
-        "rank0_train_loss": 0.6029549945331584,
-        "validation_accuracy": 0.7842662632375189,
-        "per_question": {
-          "rotation": 0.7866868381240545,
-          "engine": 0.7818456883509833
-        },
-        "elapsed_seconds": 127.33442985103466
-      },
-      {
-        "epoch": 5,
-        "rank0_train_loss": 0.5778563380493719,
-        "validation_accuracy": 0.7951588502269289,
-        "per_question": {
-          "rotation": 0.7951588502269289,
-          "engine": 0.7951588502269289
-        },
-        "elapsed_seconds": 161.85239366884343
-      },
-      {
-        "epoch": 6,
-        "rank0_train_loss": 0.5505870796971353,
-        "validation_accuracy": 0.7780635400907716,
-        "per_question": {
-          "rotation": 0.7812405446293494,
-          "engine": 0.7748865355521937
-        },
-        "elapsed_seconds": 195.88784260093234
-      },
-      {
-        "epoch": 7,
-        "rank0_train_loss": 0.5314440407763084,
-        "validation_accuracy": 0.7996974281391831,
-        "per_question": {
-          "rotation": 0.7984871406959153,
-          "engine": 0.8009077155824509
-        },
-        "elapsed_seconds": 224.79277110588737
-      },
-      {
-        "epoch": 8,
-        "rank0_train_loss": 0.5230627647992696,
-        "validation_accuracy": 0.7978819969742814,
-        "per_question": {
-          "rotation": 0.794856278366112,
-          "engine": 0.8009077155824509
-        },
-        "elapsed_seconds": 258.6135480608791
-      }
-    ],
-    "best_validation_accuracy": 0.7996974281391831,
-    "weights_sha256": "61a741078dc8058b9848b88f562d392870710cca4f3cf1aff5b160a7a6d6fdfc",
-    "dataset": {
-      "train": {
-        "rows": 50986,
-        "rollout_seeds": [
-          1000,
-          1031
-        ],
-        "labels": {
-          "rotation:left": 4599,
-          "engine:off": 6082,
-          "rotation:hold": 16335,
-          "engine:half": 11614,
-          "rotation:right": 4559,
-          "engine:full": 7797
-        },
-        "sha256": "15adf53ef87b3fc3a878d4cbca5bafe0664702f126806fedc84348a522a278a7"
-      },
-      "validation": {
-        "rows": 6610,
-        "rollout_seeds": [
-          2000,
-          2003
-        ],
-        "labels": {
-          "rotation:left": 604,
-          "engine:off": 865,
-          "rotation:right": 536,
-          "rotation:hold": 2165,
-          "engine:full": 985,
-          "engine:half": 1455
-        },
-        "sha256": "bd048ec8ae51dbfcfd897c2163db779aee4dd37cdb4b4c5a4b4e87ef346de2f1"
-      }
-    }
-  },
-  "parity": {
-    "fixtures": 32,
-    "agreements": 32,
-    "max_probability_error": 0.03603467645645142
-  },
-  "flights": {
-    "distilled-laya": {
-      "1.0": {
-        "flights": 30,
-        "landed": 0,
-        "decisions": 13095,
-        "matched": 2357,
-        "overrides": 0
-      },
-      "0.7": {
-        "flights": 30,
-        "landed": 0,
-        "decisions": 7536,
-        "matched": 925,
-        "overrides": 0
-      },
-      "0.4": {
-        "flights": 30,
-        "landed": 0,
-        "decisions": 4682,
-        "matched": 497,
-        "overrides": 0
-      }
+ "training": {
+  "host_gpus": "CUDA devices 0-3, NVIDIA RTX PRO 4500 Blackwell Server Edition",
+  "torch": "2.12.1+cu129",
+  "epochs": [
+   {
+    "epoch": 1,
+    "rank0_train_loss": 0.4696393943172394,
+    "validation_accuracy": 0.8530052943008408,
+    "per_question": {
+     "rotation": 0.8660853316723762,
+     "engine": 0.8399252569293055
     },
-    "distilled-assisted": {
-      "1.0": {
-        "flights": 30,
-        "landed": 30,
-        "decisions": 8802,
-        "matched": 5344,
-        "overrides": 3034
-      },
-      "0.7": {
-        "flights": 30,
-        "landed": 30,
-        "decisions": 8835,
-        "matched": 5484,
-        "overrides": 2652
-      },
-      "0.4": {
-        "flights": 30,
-        "landed": 30,
-        "decisions": 10265,
-        "matched": 5686,
-        "overrides": 3769
-      }
-    }
+    "elapsed_seconds": 26.236287477993756
+   },
+   {
+    "epoch": 2,
+    "rank0_train_loss": 0.40475912912817075,
+    "validation_accuracy": 0.8791653690439115,
+    "per_question": {
+     "rotation": 0.8857053877296792,
+     "engine": 0.8726253503581439
+    },
+    "elapsed_seconds": 53.22946375999891
+   },
+   {
+    "epoch": 3,
+    "rank0_train_loss": 0.36635510068257343,
+    "validation_accuracy": 0.8888196823419495,
+    "per_question": {
+     "rotation": 0.8972282777950794,
+     "engine": 0.8804110868888196
+    },
+    "elapsed_seconds": 84.11546859699592
+   },
+   {
+    "epoch": 4,
+    "rank0_train_loss": 0.33450423473518637,
+    "validation_accuracy": 0.8966054188726253,
+    "per_question": {
+     "rotation": 0.9096854562441608,
+     "engine": 0.8835253815010901
+    },
+    "elapsed_seconds": 115.14148589099932
+   },
+   {
+    "epoch": 5,
+    "rank0_train_loss": 0.3092690819306263,
+    "validation_accuracy": 0.8933354095297416,
+    "per_question": {
+     "rotation": 0.8997197134848957,
+     "engine": 0.8869511055745873
+    },
+    "elapsed_seconds": 146.2627581209963
+   },
+   {
+    "epoch": 6,
+    "rank0_train_loss": 0.29409437656925186,
+    "validation_accuracy": 0.898006851448147,
+    "per_question": {
+     "rotation": 0.9099968857053877,
+     "engine": 0.8860168171909063
+    },
+    "elapsed_seconds": 172.47653428399644
+   },
+   {
+    "epoch": 7,
+    "rank0_train_loss": 0.28460460562771966,
+    "validation_accuracy": 0.9001868576767362,
+    "per_question": {
+     "rotation": 0.9084397383992525,
+     "engine": 0.8919339769542198
+    },
+    "elapsed_seconds": 203.77830401099345
+   },
+   {
+    "epoch": 8,
+    "rank0_train_loss": 0.285792703801428,
+    "validation_accuracy": 0.9015882902522578,
+    "per_question": {
+     "rotation": 0.913111180317658,
+     "engine": 0.8900654001868576
+    },
+    "elapsed_seconds": 235.10276925300423
+   }
+  ],
+  "best_validation_accuracy": 0.9015882902522578,
+  "source_sha256": "7236cde5295a03cbcaf75829d634db9586bc3278723a5423f2addd6747d9d17d"
+ },
+ "parity": [
+  {
+   "agreement": true,
+   "max_probability_error": 0.024227887725830066
   },
-  "wall_seconds": 841.4627337499987
+  {
+   "agreement": true,
+   "max_probability_error": 2.0265579223632812e-05
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0036496416091919004
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0013228042602538848
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0001634664535522523
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0004380390167236792
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0006020555794239053
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.00013757814764976672
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.004169690322875952
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.000764091682434076
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.002015661239624024
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0041583011627197575
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0005106082513928415
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0053221536636351985
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0015584671705961232
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.00024689985513687285
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0016801121711731426
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0008110233008861538
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.001724322223663366
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.005518998241424544
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0002885102272033313
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0012411756515502415
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0009710536360740644
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0003602096855640398
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.013870847225189165
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.002545442113280297
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.00019518728256229245
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0039444248199462795
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0018239995598793024
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.0004715607963502403
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.002473482227325463
+  },
+  {
+   "agreement": true,
+   "max_probability_error": 0.004504277896881126
+  }
+ ],
+ "flights": {
+  "distilled-laya": {
+   "1.0": {
+    "flights": 30,
+    "landed": 0,
+    "decisions": 3562,
+    "matched": 602,
+    "overrides": 0
+   },
+   "0.7": {
+    "flights": 30,
+    "landed": 1,
+    "decisions": 3638,
+    "matched": 665,
+    "overrides": 0
+   },
+   "0.4": {
+    "flights": 30,
+    "landed": 0,
+    "decisions": 3353,
+    "matched": 557,
+    "overrides": 0
+   }
+  },
+  "distilled-assisted": {
+   "1.0": {
+    "flights": 30,
+    "landed": 30,
+    "decisions": 8773,
+    "matched": 7062,
+    "overrides": 1466
+   },
+   "0.7": {
+    "flights": 30,
+    "landed": 30,
+    "decisions": 8588,
+    "matched": 7337,
+    "overrides": 1048
+   },
+   "0.4": {
+    "flights": 30,
+    "landed": 30,
+    "decisions": 9693,
+    "matched": 8388,
+    "overrides": 1159
+   }
+  }
+ },
+ "wall_seconds": 615.6756346249895
 }

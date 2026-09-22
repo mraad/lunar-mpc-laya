@@ -38,9 +38,10 @@ secretly loses more than half its power, and the pilot is not told.
 3. **The trainee learns from the engineer, then flies with a safety net.** A
    new Laya was trained on thousands of MPC's decisions, with the hints removed
    from the sentence, so it must decide on its own. Alone, it crashes every
-   flight: one small mistake leads to an unfamiliar situation, then another
-   mistake, and so on. With the engineer's veto on, it lands every flight, and
-   about two thirds of the moves that fly the ship are Laya's own.
+   flight but one: one small mistake leads to an unfamiliar situation, then
+   another mistake, and so on. With the engineer's veto on, it lands every
+   flight, and more than four fifths of the moves that fly the ship are Laya's
+   own.
 
 **Why bother, if the engineer alone can land?** The engineer can only do what
 its rules say. It cannot be taught new preferences from examples, cannot take
@@ -75,8 +76,8 @@ NumPy beam search over the nine discrete commands, ported from
    search; it is replaced only when its best rollout costs more than MPC's own
    plan by a margin.
 3. **Teacher**: a second checkpoint was fine-tuned on MPC labels with a
-   telemetry-only prompt. Raw it lands 0/90; shielded 90/90 with about a third
-   of proposals overridden.
+   telemetry-only prompt. Raw it lands 1/90; shielded 90/90 with 12-17% of
+   proposals overridden.
 
 A browser page runs the MPC live (click anywhere in the sky, pick a pad, add a
 fault, launch). With the local server it also flies both Laya checkpoints and
@@ -86,7 +87,7 @@ replays every recorded decision with the model's probabilities.
 |---|---|
 | [How MPC and Laya combine](docs/fusion.md) | What each side contributes, the three couplings, why the combination is stronger than either, and what comes next |
 | [Measured results](docs/results.md) | Landings, request following, shield activity and latency for every pilot and fault scenario, with reproduction commands |
-| [Distillation](docs/distillation.md) | Retraining Laya on MPC labels with a telemetry-only prompt: raw 0/90, shielded 90/90 with Laya's choice kept two thirds of the time |
+| [Distillation](docs/distillation.md) | Retraining Laya on MPC labels with a telemetry-only prompt: raw 1/90, shielded 90/90 with Laya's choice kept more than four fifths of the time |
 | [Landing lab](web/README.md) | The browser page: live MPC, live Laya pilots through the local server, recorded flights |
 | [Animated flight](docs/media.md) | The GIF above: what it shows and how to regenerate it |
 
@@ -134,7 +135,8 @@ Pilots: `pd-baseline` and `pd-laya` are upstream's PD guidance for comparison;
 `mpc` is MPC alone; `mpc-laya` executes Laya's choices directly with MPC
 requests in the prompt; `mpc-assisted` adds the predictive shield. `--fixed-model`
 disables learning (ablation), `--thrust-scale` and `--fault-at` set the fault
-(default: no fault), `--margin` sets the shield tolerance, `--prompt-estimate`
+(default: no fault), `--switch` sets the command-switching cost (0 disables the
+smoothing), `--margin` sets the shield tolerance, `--prompt-estimate`
 appends the engine estimate to the prompt (changes the trained template; measured
 separately). `uv run lunar-mpc-laya --help` lists the rest.
 
@@ -142,14 +144,14 @@ separately). `uv run lunar-mpc-laya --help` lists the rest.
 lunar_mpc_laya/mpc.py     Dynamics (scalar RLS on thrust gain) and AdaptiveMPC (beam search)
 lunar_mpc_laya/pilot.py   MPCPilot: upstream Pilot with MPC reference and predictive shield
 lunar_mpc_laya/cli.py     Session (episode loop with fault injection), upstream JSON schema and replay
-lunar_mpc_laya/distilled.py  telemetry-only prompt and the distilled pilot (Laya decides, MPC shields)
+lunar_mpc_laya/distilled.py  telemetry prompt with the flown command, and the distilled pilot (Laya decides, MPC shields)
 lunar_mpc_laya/serve.py   local server: page + live /reset and /step decisions from the Python pilots
 lunar_mpc_laya/gif.py     documentation GIF renderer (Pillow, media extra)
 scripts/evaluate.py       records every pilot/scenario on seeds 3000-3009 and writes docs/results.json
 scripts/parity.py         records Python flights that the JavaScript port must reproduce
 training/                 telemetry-only prompt, MPC-labelled data, CUDA trainer, distilled pilot, MLX verification
 tests/test_fusion.py      dependency-free checks (fake agents; no MLX)
-web/                      landing lab: lander.js (physics + MPC port), app.js, build.py, Node test
+web/                      landing lab: lander.js (physics + MPC port + shared lander art), app.js, build.py, Node test
 ```
 
 ## How it works
@@ -167,6 +169,19 @@ reference capped by the braking distance the estimated thrust allows (0.7
 design margin, as in lunar-mpc), a hold at 120 m above the pad while off it,
 plus terrain clearance while off the pad and a small throttle cost.
 
+One more term keeps the flight smooth. A beam search that re-picks freely every
+0.2 s will take a different command on most decisions even when the difference
+barely matters, and the tank then chatters between throttle settings while the
+attitude jets flip sign. `MPCConfig.switch` (default 8) charges each candidate
+for changing command, normalized so one knob covers both axes: half the change
+in turn plus the change in throttle, each in [0, 1]. The command actually flown
+last stage is what the first stage is charged against, so it is per-flight
+online state and `MPCPilot.reset` clears it with the thrust estimate. Measured
+over seeds 3000-3009 on all three pads, it cuts the command-change rate from
+77.7% to 20.6% of decisions and the stage-to-stage tilt jerk from 5.37° to
+1.69° RMS, with all 30 flights still landing under every fault level and fuel
+use unchanged.
+
 After each executed command `Dynamics.observe` compares the measured velocity
 change with the prediction and updates the thrust gain by scalar recursive
 least squares (forgetting 0.97, clipped to [1, 10]). Gravity and turn rate are
@@ -174,6 +189,24 @@ treated as known constants: learning gravity too made thrust and gravity
 collinear during a sustained upright burn, and the estimates drifted along the
 unobservable direction. Coasting, terminal and fuel-starved transitions are
 excluded.
+
+## Drawing the flight
+
+A decision covers 0.2 s, so a page that redraws only when a decision lands
+animates at 5 fps however smooth the trajectory is. Both canvas tabs keep the
+state the stage started from, mix the state it ended in back into it by the
+fraction of the stage the playback clock has covered, and redraw every
+animation frame. The drawn lander is at most one stage behind the telemetry
+panel; the panel itself still reports exact decision states, and the trail and
+predicted path are unchanged.
+
+`Lander.drawLander` is one chamfered-box lander shared byte for byte with
+lunar-mpc and lunar-laya, so the same vehicle appears in all three projects and
+in the documentation GIF. Its coordinates are in units of `RADIUS / 8` with y
+pointing down, which keeps the footpads exactly one hull radius below the
+centre: the game treats the hull as a circle of `RADIUS` and lands when
+`y - RADIUS` reaches the surface, so the feet touch down without sinking at any
+canvas size. Passing `flip: -1` draws it into a y-up frame.
 
 The replay is upstream's `replay.html`; its banner reads upstream's `mode`
 (`baseline`/`laya`/`assisted`), so the JSON provenance keeps that field and adds
@@ -201,8 +234,8 @@ shielded too. The shield can only be as good as MPC's own plan.
 The original checkpoint receives requested labels in every prompt, so those
 Laya results demonstrate request following, not independent piloting, and the
 shield never fired. The distilled checkpoint ([docs/distillation.md](docs/distillation.md))
-decides from telemetry alone: it cannot land unshielded (0/90) and lands every
-flight shielded (90/90) with about a third of its proposals overridden. Appending the engine estimate to the prompt broke request following
+decides from telemetry alone: unshielded it lands 1 of 90 flights and lands
+every flight shielded (90/90), with 12-17% of its proposals overridden. Appending the engine estimate to the prompt broke request following
 completely, so that flag is a negative result, not a feature. The fault is a single step change in main-engine
 thrust; sensor noise, delays and other disturbances are untested.
 

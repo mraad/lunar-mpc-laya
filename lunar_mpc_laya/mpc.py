@@ -47,10 +47,17 @@ class MPCConfig:
     beam: int = 32
     adaptive: bool = True
     forgetting: float = 0.97
+    # Cost of changing command between stages. Without it the beam search is free
+    # to re-pick every 0.2 s, and the tank chatters between throttle settings and
+    # flips the attitude jets, which is what a rider would feel. Calibration knob:
+    # too high and the controller brakes late, too low and the flight is jerky.
+    switch: float = 8.
 
     def __post_init__(self):
         if min(self.horizon, self.beam) < 1 or not 0 < self.forgetting <= 1:
             raise ValueError("horizon and beam must be positive; forgetting in (0, 1]")
+        if self.switch < 0:
+            raise ValueError("switch penalty must be nonnegative")
 
 
 class Dynamics:
@@ -139,7 +146,9 @@ class AdaptiveMPC:
         # rule at stage ends only, not at every physics substep.
         return predicted, done | contact | out, crashed
 
-    def cost(self, states, commands, pad):
+    def cost(self, states, commands, pad, previous):
+        """Stage cost. ``previous`` holds the command index each candidate came
+        from, or -1 at the very first stage of the first flight decision."""
         x, y, vx, vy, angle = states[:, :5].T
         px = x - (pad[0] + pad[1]) / 2
         altitude = np.maximum(0, y - pad[2] - RADIUS)
@@ -155,27 +164,36 @@ class AdaptiveMPC:
         upward = np.maximum(.2, .7 * self.model.thrust * np.cos(np.radians(angle)) - self.model.gravity)
         vy_ref = np.maximum(vy_ref, -np.sqrt(2 * upward * np.maximum(.05, altitude)))
         clearance = y - RADIUS - surface(x)
+        # Both differences are normalized to [0, 1] so a single knob tunes them.
+        change = (.5 * np.abs(TURN[commands] - TURN[previous])
+                  + np.abs(THROTTLE[commands] - THROTTLE[previous]))
+        switch = np.where(previous < 0, 0., change) * self.cfg.switch
         return (.005 * px**2 + .4 * (vx - vx_ref)**2 + 2 * (vy - vy_ref)**2
                 + .02 * (angle - angle_ref)**2 + .05 * THROTTLE[commands]
-                + .05 * off_pad * np.maximum(0, 40 - clearance)**2)
+                + .05 * off_pad * np.maximum(0, 40 - clearance)**2 + switch)
 
-    def act(self, snapshot, target, first=None):
-        """Beam search; ``first`` forces the first command (used by the shield)."""
+    def act(self, snapshot, target, first=None, previous=None):
+        """Beam search; ``first`` forces the first command (used by the shield),
+        ``previous`` is the command actually flown last stage, which the switching
+        penalty charges against. ``None`` means the flight has no history yet."""
         begin = time.perf_counter()
         pad = PADS[target]
         state = state_vector(snapshot)
         states, done, costs = state[None], np.zeros(1, bool), np.zeros(1)
+        prior = np.full(1, -1 if previous is None else int(previous))
         paths = np.zeros((1, 0), int)
         for stage in range(self.cfg.horizon):
             width = 1 if stage == 0 and first is not None else 9
             commands = np.array([first]) if width == 1 else np.tile(np.arange(9), len(states))
+            prior = np.repeat(prior, width)
             states, done, crashed = self.advance(np.repeat(states, width, 0), commands,
                                                  np.repeat(done, width), pad)
-            stage_cost = np.where(done, 0., self.cost(states, commands, pad)) * STAGE
+            stage_cost = np.where(done, 0., self.cost(states, commands, pad, prior)) * STAGE
             costs = np.repeat(costs, width) + stage_cost + self.CRASH * crashed
             paths = np.column_stack((np.repeat(paths, width, 0), commands))
             keep = np.argsort(costs, kind="stable")[:self.cfg.beam]
             states, done, costs, paths = states[keep], done[keep], costs[keep], paths[keep]
+            prior = commands[keep]
         best = int(np.argmin(costs))
         plan = paths[best].tolist()
         predicted, settled, trace = state[None], np.zeros(1, bool), [state.tolist()]
